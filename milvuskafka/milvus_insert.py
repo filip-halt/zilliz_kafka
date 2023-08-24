@@ -8,7 +8,7 @@ from confluent_kafka import Consumer
 from pymilvus import MilvusClient
 
 import milvuskafka.values as values
-from milvuskafka.datatypes import (MilvusInsertRequest,)
+from milvuskafka.datatypes import MilvusInsertRequest
 
 logger = logging.getLogger("KafkaInsertLogger")
 logger.setLevel(logging.DEBUG)
@@ -31,17 +31,18 @@ class MilvusInsert:
             'group.id': "MilvusInsert_Consumers",
             'auto.offset.reset': 'earliest'
         }
-
-        # Kafka consumer on predifiend topic for query requests
+        # Kafka consumer on predifiend topic for insert requests
         self.consumer = Consumer(self.kafka_consumer_config)
         self.consumer.subscribe([values.KAFKA_TOPICS["INSERT_CONSUMER_TOPIC"]])
 
     def start(self):
+        # Start listening to inserts
         self.end_event = Event()
         self.run_thread = Thread(target=self.run, args=(self.end_event, ))
         self.run_thread.start()
     
     def stop(self):
+        # Trigger end and wait for join
         self.end_event.set()
         self.run_thread.join()
     
@@ -53,30 +54,21 @@ class MilvusInsert:
             msg = self.consumer.poll(timeout=values.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
-                search_vals = MilvusInsertRequest(**json.loads(msg.value()))
-                self.insert(search_vals)
+                insert_vals = MilvusInsertRequest(**json.loads(msg.value()))
+                self.insert(insert_vals)
+                # Commit msg
                 self.consumer.commit(msg)
-
         logger.debug("Exiting MilvusInsert run() loop")
         return
                 
     def insert(self, insert_vals: MilvusInsertRequest):
-        # Insert the data into milvus
         logger.debug("Insert request recieved with insert_id: %s", insert_vals.insert_id)
+        # Convert data to dict
         data = insert_vals.doc.model_dump(exclude_none=True)
-
+        # Insert data into Milvus
         self.milvus_client.insert(
             collection_name=values.MILVUS_COLLECTION,
             data=[data],
         )
         logger.debug("Inserted insert_id: %s", insert_vals.insert_id)
         return
-
-if __name__ == "__main__":
-    search_engine = MilvusInsert()
-    search_engine.start()
-    time.sleep(5)
-    search_engine.stop()
-
-
-

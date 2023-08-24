@@ -44,11 +44,13 @@ class MilvusSearch:
         self.producer = Producer(self.kafka_producer_config)
     
     def start(self):
+        # Start listening for search requests
         self.end_event = Event()
         self.run_thread = Thread(target=self.run, args=(self.end_event, ))
         self.run_thread.start()
     
     def stop(self):
+        # Stop loop and wait for join
         self.end_event.set()
         self.run_thread.join()
     
@@ -61,9 +63,13 @@ class MilvusSearch:
             # If a message was caught, process it
             if msg is not None:
                 search_vals = MilvusSearchRequest(**json.loads(msg.value()))
+                # Get search response
                 res = self.search(search_vals)
+                # Produce the results
                 self.respond(res)
+                # Commit that the message was processed
                 self.consumer.commit(msg)
+        # Flush producer on finish
         self.producer.flush()   
         logger.debug("Exiting MilvusSearch run() loop")
         return
@@ -77,7 +83,7 @@ class MilvusSearch:
             limit=search_vals.top_k,
             output_fields=["*"]
         )
-        # Convert search results list of MilvusSearchHits
+        # Convert search results list of MilvusDocuments
         search_res = []
         for hit in res[0]:
             search_res.append(
@@ -87,7 +93,7 @@ class MilvusSearch:
                 )
             )
         logger.debug("Search on query_id: %s found %d results", search_vals.query_id, len(search_res))
-        # Convertto MilvusSearchResponse and return
+        # Convert to MilvusSearchResponse and return
         return MilvusSearchResponse(
             query_id=search_vals.query_id,
             results = search_res
@@ -97,14 +103,8 @@ class MilvusSearch:
         # Send the results back through the desired topic
         self.producer.produce(
             topic=values.KAFKA_TOPICS["SEARCH_PRODUCER_TOPIC"],
-            value=json.dumps(respond_vals.model_dump(exclude_none=True)))
-
-
-if __name__ == "__main__":
-    search_engine = MilvusSearch()
-    search_engine.start()
-    time.sleep(5)
-    search_engine.stop()
+            value=json.dumps(respond_vals.model_dump(exclude_none=True))
+        )
 
 
 
