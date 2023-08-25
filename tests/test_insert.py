@@ -41,10 +41,9 @@ def test_input(runner_and_producer: Tuple[MilvusInsert, Producer]):
         value=json.dumps(test_insert.model_dump())
         )
     producer.flush()
-    time.sleep(10)
+    # Need to sleep to let values flow
+    time.sleep(5)
     r.milvus_client.flush(values.MILVUS_COLLECTION)
     res = r.milvus_client.query(values.MILVUS_COLLECTION, "chunk_id == \"1\"")
     assert len(res) == 1
     assert res[0]["chunk_id"] == "1"
-
-

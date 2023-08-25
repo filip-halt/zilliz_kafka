@@ -34,6 +34,7 @@ class MilvusSearch:
             "bootstrap.servers": values.KAFKA_ADDRESS,
             "enable.auto.commit": False,
             'group.id': "MilvusSearch_Consumers",
+            'auto.offset.reset': 'earliest'
         }
 
         # Kafka consumer on predifiend topic for query requests
@@ -105,6 +106,4 @@ class MilvusSearch:
             topic=values.KAFKA_TOPICS["SEARCH_PRODUCER_TOPIC"],
             value=json.dumps(respond_vals.model_dump(exclude_none=True))
         )
-
-
-
+        logger.debug("Search on query_id: %s sent result back", respond_vals.query_id)
