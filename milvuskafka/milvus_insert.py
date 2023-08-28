@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 import time
+from copy import deepcopy
 from threading import Event, Thread
 
 from confluent_kafka import Consumer
@@ -25,12 +26,12 @@ class MilvusInsert:
             uri=values.MILVUS_URI,
             token=values.MILVUS_TOKEN
         )
-        self.kafka_consumer_config = {
-            "bootstrap.servers": values.KAFKA_ADDRESS,
+        self.kafka_consumer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+        self.kafka_consumer_config.update({            
             "enable.auto.commit": False,
             'group.id': "MilvusInsert_Consumers",
             'auto.offset.reset': 'earliest'
-        }
+        })
         # Kafka consumer on predifiend topic for insert requests
         self.consumer = Consumer(self.kafka_consumer_config)
         self.consumer.subscribe([values.KAFKA_TOPICS["INSERT_CONSUMER_TOPIC"]])

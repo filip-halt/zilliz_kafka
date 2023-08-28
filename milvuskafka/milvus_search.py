@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 import time
+from copy import deepcopy
 from threading import Event, Thread
 
 from confluent_kafka import Consumer, Producer
@@ -27,15 +28,13 @@ class MilvusSearch:
             token=values.MILVUS_TOKEN
         )
         # Kafka configs
-        self.kafka_producer_config = {
-            "bootstrap.servers": values.KAFKA_ADDRESS,
-        }
-        self.kafka_consumer_config = {
-            "bootstrap.servers": values.KAFKA_ADDRESS,
+        self.kafka_producer_config = values.KAFKA_DEFAULT_CONFIGS
+        self.kafka_consumer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+        self.kafka_consumer_config.update({            
             "enable.auto.commit": False,
             'group.id': "MilvusSearch_Consumers",
             'auto.offset.reset': 'earliest'
-        }
+        })
 
         # Kafka consumer on predifiend topic for query requests
         self.consumer = Consumer(self.kafka_consumer_config)

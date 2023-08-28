@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import time
 from typing import Tuple
@@ -18,17 +19,17 @@ def runner_and_producer_consumer():
     setup_milvus()
     search_runner = MilvusSearch()
     search_runner.start()
-    kafka_producer_config = {
-        "bootstrap.servers": values.KAFKA_ADDRESS,
+    kafka_producer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+    kafka_producer_config.update({
         'queue.buffering.max.ms' : 1, 
-    }
+    })
     producer = Producer(kafka_producer_config)
-    kafka_consumer_config = {
-        "bootstrap.servers": values.KAFKA_ADDRESS,
+    kafka_consumer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+    kafka_consumer_config.update({
         "enable.auto.commit": False,
         'group.id': "Test_Search_Consumer",
         'auto.offset.reset': 'earliest'
-    }
+    })
 
     consumer = Consumer(kafka_consumer_config)
     consumer.subscribe([values.KAFKA_TOPICS["SEARCH_PRODUCER_TOPIC"]])
@@ -50,10 +51,10 @@ def test_input(runner_and_producer_consumer: Tuple[MilvusSearch, Producer, Consu
     )
     producer.flush()
     # Need to sleep to let values flow
-    time.sleep(5)
+    time.sleep(10)
     r.producer.flush()
     # Need to sleep to let values flow
-    time.sleep(5)
+    time.sleep(10)
     msg = consumer.poll()
     results = MilvusSearchResponse(**json.loads(msg.value()))
     assert results.results[0].chunk_id == "1"

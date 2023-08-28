@@ -1,3 +1,4 @@
+import time
 from confluent_kafka.admin import AdminClient, NewTopic
 from pymilvus import MilvusClient, utility
 import milvuskafka.values as values
@@ -21,9 +22,7 @@ def setup_milvus(
         )
 
 def setup_kafka(overwrite=True):
-    admin = AdminClient({"bootstrap.servers": values.KAFKA_ADDRESS,
-                        #  "receive.message.max.bytes": 1513486160,
-                        })
+    admin = AdminClient(values.KAFKA_DEFAULT_CONFIGS)
     if overwrite:
         try:
             fs = admin.delete_topics(list(values.KAFKA_TOPICS.values()))
@@ -32,7 +31,9 @@ def setup_kafka(overwrite=True):
         except:
             pass
             
-    new_topics = [NewTopic(topic, num_partitions=1, replication_factor=1) for topic in list(values.KAFKA_TOPICS.values())]
+    new_topics = [NewTopic(topic, num_partitions=1, replication_factor=values.KAFKA_REPLICATION_FACTOR) for topic in list(values.KAFKA_TOPICS.values())]
+    # TODO: Retry mechanism for when it is in deletion state
+    time.sleep(1)
     fs = admin.create_topics(new_topics)
 
     # Wait for each operation to finish.
