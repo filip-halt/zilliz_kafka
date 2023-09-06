@@ -25,6 +25,15 @@ class MilvusSearchResponse(BaseModel):
     query_id: str
     results: List[MilvusDocument]
 
+class HackerNewsPost(BaseModel):
+    title: str
+    by: str
+    type: str
+    id: int
+    score: int
+    time: int
+    url: Optional[str] = None
+    text: Optional[str] = None
 
 
 
