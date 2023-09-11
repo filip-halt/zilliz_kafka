@@ -32,7 +32,7 @@ def runner_and_producer_consumer():
     })
 
     consumer = Consumer(kafka_consumer_config)
-    consumer.subscribe([values.KAFKA_TOPICS["SEARCH_PRODUCER_TOPIC"]])
+    consumer.subscribe([values.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"]])
     yield search_runner, producer, consumer
     search_runner.stop()
 
@@ -45,7 +45,7 @@ def test_input(runner_and_producer_consumer: Tuple[MilvusSearch, Producer, Consu
         top_k = 1,
     )
     producer.produce(
-        topic=values.KAFKA_TOPICS["SEARCH_CONSUMER_TOPIC"],
+        topic=values.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
         key="",
         value=json.dumps(test_search.model_dump())
     )
