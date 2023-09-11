@@ -19,6 +19,7 @@ def setup_milvus(
             id_type = "str",
             max_length = 65_000,
             vector_field_name="embedding",
+            consistency_level="Strong",
         )
 
 def setup_kafka(overwrite=True):

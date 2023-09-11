@@ -1,10 +1,10 @@
 KAKFA_POLL_TIMEOUT = 1
 KAFKA_REPLICATION_FACTOR = 1 # 3 for cloud
 KAFKA_TOPICS = {
-    "SEARCH_PRODUCER_TOPIC": "SearchResponse",
-    "SEARCH_CONSUMER_TOPIC": "SearchRequest",
-    "INSERT_CONSUMER_TOPIC": "InsertRequest",
-    "HACKERNEWS_PARSED_TOPIC": "HackerNewsParsed",
+    "SEARCH_RESPONSE_TOPIC": "SearchResponse",
+    "SEARCH_REQUEST_TOPIC": "SearchRequest",
+    "INSERT_REQUEST_TOPIC": "InsertRequest",
+    "REQUST_TOPIC": "EmbeddingRequest",
 }
 KAFKA_DEFAULT_CONFIGS = {
     "bootstrap.servers": "localhost:9094",

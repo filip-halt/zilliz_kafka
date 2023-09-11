@@ -34,7 +34,7 @@ class MilvusInsert:
         })
         # Kafka consumer on predifiend topic for insert requests
         self.consumer = Consumer(self.kafka_consumer_config)
-        self.consumer.subscribe([values.KAFKA_TOPICS["INSERT_CONSUMER_TOPIC"]])
+        self.consumer.subscribe([values.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"]])
 
     def start(self):
         # Start listening to inserts

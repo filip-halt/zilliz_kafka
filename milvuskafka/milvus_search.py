@@ -38,7 +38,7 @@ class MilvusSearch:
 
         # Kafka consumer on predifiend topic for query requests
         self.consumer = Consumer(self.kafka_consumer_config)
-        self.consumer.subscribe([values.KAFKA_TOPICS["SEARCH_CONSUMER_TOPIC"]])
+        self.consumer.subscribe([values.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"]])
 
         # Kafka producer for query responses 
         self.producer = Producer(self.kafka_producer_config)
@@ -102,7 +102,7 @@ class MilvusSearch:
     def respond(self, respond_vals: MilvusSearchResponse):
         # Send the results back through the desired topic
         self.producer.produce(
-            topic=values.KAFKA_TOPICS["SEARCH_PRODUCER_TOPIC"],
+            topic=values.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"],
             value=json.dumps(respond_vals.model_dump(exclude_none=True))
         )
         logger.debug("Search on query_id: %s sent result back", respond_vals.query_id)
