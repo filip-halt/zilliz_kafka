@@ -1,5 +1,5 @@
 KAKFA_POLL_TIMEOUT = 1
-KAFKA_REPLICATION_FACTOR = 1 # 3 for cloud
+KAFKA_REPLICATION_FACTOR = 1  # 3 for cloud
 KAFKA_TOPICS = {
     "SEARCH_RESPONSE_TOPIC": "SearchResponse",
     "SEARCH_REQUEST_TOPIC": "SearchRequest",
@@ -23,5 +23,5 @@ MILVUS_DIM = 3
 MILVUS_URI = "http://localhost:19530"
 MILVUS_TOKEN = ""
 
-HACKER_NEWS_API_URL = 'https://hacker-news.firebaseio.com/v0/newstories.json'
+HACKER_NEWS_API_URL = "https://hacker-news.firebaseio.com/v0/newstories.json"
 HACKER_NEWS_PARSE_SLEEP = 60
