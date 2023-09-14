@@ -44,7 +44,7 @@ class Embedder:
 
         # Kafka consumer on request topics, can include search and insert requests
         self.consumer = Consumer(self.kafka_consumer_config)
-        self.consumer.subscribe([values.KAFKA_TOPICS["REQUST_TOPIC"]])
+        self.consumer.subscribe([values.KAFKA_TOPICS["REQUEST_TOPIC"]])
 
         # Producer for both insert and search requests
         self.producer = Producer(self.kafka_producer_config)
@@ -73,25 +73,32 @@ class Embedder:
             msg = self.consumer.poll(timeout=values.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
-                # If the msg key is an insert, we load the HackerNewsPost
-                if msg.key() == "insert":
-                    post = HackerNewsPost(**json.loads(msg.value()))
-                    logger.debug(f"Recieved insert request with id: {post.id}")
-                    # Embed the post into a list of MilvusDocs, each containing a chunk
-                    res = self.embed_post(post)
-                    # Produce the result to the insert channel
-                    self.respond_insert(res)
-                elif msg.key() == "search":
-                    post = SearchRequest(**json.loads(msg.value()))
-                    logger.debug(
-                        f"Recieved search request with query_id: {post.query_id}"
-                    )
-                    # Get search response
-                    res = self.embed_search(post)
-                    # Produce the results
-                    self.respond_search(res)
-            # Commit that the message was processed
-            self.consumer.commit(msg)
+                # Broad try except for now to skip faulty data
+                try:
+                    key = msg.key().decode()
+                    # If the msg key is an insert, we load the HackerNewsPost
+                    if key == "insert":
+                        post = HackerNewsPost(**json.loads(msg.value()))
+                        logger.debug(f"Recieved insert request with id: {post.id}")
+                        # Embed the post into a list of MilvusDocs, each containing a chunk
+                        res = self.embed_post(post)
+                        # Produce the result to the insert channel
+                        self.respond_insert(res)
+
+                    elif key == "search":
+                        post = SearchRequest(**json.loads(msg.value()))
+                        logger.debug(
+                            f"Recieved search request with query_id: {post.query_id}"
+                        )
+                        # Get search response
+                        res = self.embed_search(post)
+                        # Produce the results
+                        self.respond_search(res)
+                    # Commit that the message was processed
+                except Exception:
+                    pass
+                self.consumer.commit(msg)
+                    
         # Flush producer on finish
         self.producer.flush()
         logger.debug("Exiting Embedder run() loop")
@@ -117,8 +124,8 @@ class Embedder:
             # Embed each chunk and create a MilvusDocument for each
             for i, doc in enumerate(docs):
                 # If the content is there, embed it
-                if doc.get("page_content", None) is not None:
-                    embedding = self.embedder.embed_query(doc["page_content"])
+                if doc.page_content is not None:
+                    embedding = self.embedder.embed_query(doc.page_content)
                     new_doc = MilvusDocument(
                         chunk_id=str(post.id)
                         + "_"
@@ -126,9 +133,7 @@ class Embedder:
                         doc_id=str(
                             post.id
                         ),  # Convert the original id to string for Milvus
-                        chunk=doc[
-                            "page_content"
-                        ],  # Chunk is the original text of the chunk
+                        chunk=doc.page_content,  # Chunk is the original text of the chunk
                         title=post.title,
                         by=post.by,
                         url=post.url,
@@ -139,13 +144,13 @@ class Embedder:
         # If there is no URL, its a text post, requiring only the text inside to be embedded
         elif post.text is not None:
             # Split the text of the post and embed each
-            docs = self.text_splitter.split_text(post.text)
-            for i, doc in enumerate(docs):
-                embedding = self.embedder.embed_query(doc)
+            texts = self.text_splitter.split_text(post.text)
+            for i, text in enumerate(texts):
+                embedding = self.embedder.embed_query(text)
                 new_doc = MilvusDocument(
                     chunk_id=str(post.id) + "_" + str(i),
                     doc_id=str(post.id),
-                    chunk=doc["page_content"],
+                    chunk=text,
                     title=post.title,
                     by=post.by,
                     embedding=embedding,
@@ -170,5 +175,5 @@ class Embedder:
             value=json.dumps(respond_val.model_dump(exclude_none=True)),
         )
         logger.debug(
-            f"Search with query_id: {respond_val.query_id}sent to search topic"
+            f"Search with query_id: {respond_val.query_id} sent to search topic"
         )

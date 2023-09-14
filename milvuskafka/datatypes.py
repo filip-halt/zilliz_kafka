@@ -9,21 +9,15 @@ class MilvusDocument(BaseModel):
     title: str
     by: str
     url: Optional[str] = None
-    embedding: Optional[List[float]] = None
-    distance: Optional[float] = None
+    embedding: Optional[List[float]] = None # Embedding will be included when inserting
+    distance: Optional[float] = None # Distance will be included when returning search results
 
 
 # Milvus consumer model for searches
 class MilvusSearchRequest(BaseModel):
-    query_id: str
+    query_id: str # Query ID that connects response back to query
     embedding: List[float]
     top_k: int
-
-
-# Milvus consumer model for inserts
-class MilvusInsertRequest(BaseModel):
-    insert_id: str
-    doc: MilvusDocument
 
 
 # Milvus producer model for queries

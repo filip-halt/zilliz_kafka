@@ -7,7 +7,7 @@ import pytest
 from confluent_kafka import Producer
 
 import milvuskafka.values as values
-from milvuskafka.datatypes import MilvusDocument, MilvusInsertRequest
+from milvuskafka.datatypes import MilvusDocument
 from milvuskafka.milvus_insert import MilvusInsert
 from milvuskafka.setup_services import setup_kafka, setup_milvus
 
@@ -40,11 +40,10 @@ def test_input(runner_and_producer: Tuple[MilvusInsert, Producer]):
         by="blah",
         embedding=[0, 0, 0],
     )
-    test_insert = MilvusInsertRequest(insert_id="1 id", doc=test_doc)
     producer.produce(
         topic=values.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"],
         key="",
-        value=json.dumps(test_insert.model_dump()),
+        value=json.dumps(test_doc.model_dump()),
     )
     producer.flush()
     # Need to sleep to let values flow

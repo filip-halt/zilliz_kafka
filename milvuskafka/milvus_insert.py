@@ -1,7 +1,6 @@
 import json
 import logging
 import sys
-import time
 from copy import deepcopy
 from threading import Event, Thread
 
@@ -9,7 +8,7 @@ from confluent_kafka import Consumer
 from pymilvus import MilvusClient
 
 import milvuskafka.values as values
-from milvuskafka.datatypes import MilvusInsertRequest
+from milvuskafka.datatypes import MilvusDocument
 
 logger = logging.getLogger("KafkaInsertLogger")
 logger.setLevel(logging.DEBUG)
@@ -57,23 +56,23 @@ class MilvusInsert:
             logger.debug("{msg}")
             # If a message was caught, process it
             if msg is not None:
-                insert_vals = MilvusInsertRequest(**json.loads(msg.value()))
+                insert_vals = MilvusDocument(**json.loads(msg.value()))
                 self.insert(insert_vals)
                 # Commit msg
                 self.consumer.commit(msg)
         logger.debug("Exiting MilvusInsert run() loop")
         return
 
-    def insert(self, insert_vals: MilvusInsertRequest):
+    def insert(self, insert_val: MilvusDocument):
         logger.debug(
-            "Insert request recieved with insert_id: %s", insert_vals.insert_id
+            "Insert request recieved for chunk_id: %s", insert_val.chunk_id
         )
         # Convert data to dict
-        data = insert_vals.doc.model_dump(exclude_none=True)
+        data = insert_val.model_dump(exclude_none=True)
         # Insert data into Milvus
         self.milvus_client.insert(
             collection_name=values.MILVUS_COLLECTION,
             data=[data],
         )
-        logger.debug("Inserted insert_id: %s", insert_vals.insert_id)
+        logger.debug("Inserted chunk_id: %s", insert_val.chunk_id)
         return

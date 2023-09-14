@@ -4,11 +4,13 @@ KAFKA_TOPICS = {
     "SEARCH_RESPONSE_TOPIC": "SearchResponse",
     "SEARCH_REQUEST_TOPIC": "SearchRequest",
     "INSERT_REQUEST_TOPIC": "InsertRequest",
-    "REQUST_TOPIC": "EmbeddingRequest",
+    "REQUEST_TOPIC": "EmbeddingRequest",
 }
 KAFKA_DEFAULT_CONFIGS = {
     "bootstrap.servers": "localhost:9094",
+    "queue.buffering.max.ms": "10"
 }
+# # Configs for kafka cloud
 # KAFKA_DEFAULT_CONFIGS = {
 #     "bootstrap.servers": "redacted",
 #     "security.protocol": "SASL_SSL",
