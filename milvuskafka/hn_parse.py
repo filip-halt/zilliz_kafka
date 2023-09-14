@@ -27,24 +27,23 @@ class HackerNewsParse:
         # Kafka configs
         self.kafka_producer_config = values.KAFKA_DEFAULT_CONFIGS
         self.milvus_client = MilvusClient(
-            uri=values.MILVUS_URI,
-            token=values.MILVUS_TOKEN
+            uri=values.MILVUS_URI, token=values.MILVUS_TOKEN
         )
 
-        # Kafka producer for new HN posts 
+        # Kafka producer for new HN posts
         self.producer = Producer(self.kafka_producer_config)
-    
+
     def start(self):
         # Start listening for new articles
         self.end_event = Event()
-        self.run_thread = Thread(target=self.run, args=(self.end_event, ))
+        self.run_thread = Thread(target=self.run, args=(self.end_event,))
         self.run_thread.start()
-    
+
     def stop(self):
         # Stop loop and wait for join
         self.end_event.set()
         self.run_thread.join()
-    
+
     def run(self, stop_flag: Event):
         logger.debug("Started HackerNewsParse run() loop")
         # Continue running thread while stop_flag isnt set
@@ -63,9 +62,10 @@ class HackerNewsParse:
                         continue
                     # Respond with post info if valid
                     self.respond(post_data)
-                    
-            # time.sleep(values.HACKER_NEWS_PARSE_SLEEP)
-            time.sleep(1)
+            logger.debug(
+                f"Sleeping for {values.HACKER_NEWS_PARSE_SLEEP} seconds before next batch"
+            )
+            time.sleep(values.HACKER_NEWS_PARSE_SLEEP)
 
     def respond(self, post: HackerNewsPost):
         # Only send the post if it doesnt exist already in milvus
@@ -73,16 +73,18 @@ class HackerNewsParse:
             self.producer.produce(
                 topic=values.KAFKA_TOPICS["REQUEST_TOPIC"],
                 value=json.dumps(post.model_dump(exclude_none=True)),
-                key="insert"
+                key="insert",
             )
             logger.debug(f"Post with ID {post.id} was produced")
         else:
             logger.debug(f"Post with ID {post.id} already exists, skipped")
-            
+
     def post_exists(self, post: HackerNewsPost):
         # Query for the post to check if it already exists within the collection
         expr = f"id == {post.id}"
-        res = self.milvus_client.query(values.MILVUS_COLLECTION, filter=expr, output_fields=["id"])
+        res = self.milvus_client.query(
+            values.MILVUS_COLLECTION, filter=expr, output_fields=["id"]
+        )
         print(res)
         return len(res) != 0
 
@@ -94,4 +96,3 @@ class HackerNewsParse:
         else:
             print("Failed to fetch Hacker News posts.")
             return []
-
