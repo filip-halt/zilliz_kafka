@@ -49,7 +49,7 @@ class Embedder:
         self.producer = Producer(self.kafka_producer_config)
 
         # SentenceTransformers as the embedding model
-        self.embedder = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        self.embedder = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL)
         # Using a basic character text splitter for chunking
         self.text_splitter = RecursiveCharacterTextSplitter()
 

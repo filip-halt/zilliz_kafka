@@ -30,9 +30,11 @@ class Configuration():
 
         # Configs for Milvus
         self.MILVUS_COLLECTION = data_map.get("MILVUS_COLLECTION", os.environ.get('MILVUS_COLLECTION', "kafkalection"))
-        self.MILVUS_DIM = 384
         self.MILVUS_URI = data_map.get("MILVUS_URI", os.environ.get('MILVUS_URI', "http://localhost:19530"))
         self.MILVUS_TOKEN = data_map.get("MILVUS_TOKEN", os.environ.get('MILVUS_TOKEN', ""))
 
         self.HACKER_NEWS_API_URL = "https://hacker-news.firebaseio.com/v0/newstories.json"
         self.HACKER_NEWS_PARSE_SLEEP = 60
+
+        self.EMBEDDING_MODEL = data_map.get("EMBEDDING_MODEL", os.environ.get('EMBEDDING_MODEL', "BAAI/bge-small-en-v1.5"))
+        self.EMBEDDING_DIM =  data_map.get("EMBEDDING_DIM", os.environ.get('EMBEDDING_DIM', 384))

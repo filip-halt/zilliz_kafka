@@ -14,7 +14,7 @@ def setup_milvus(config: Configuration, overwrite=True):
     if config.MILVUS_COLLECTION not in milvus_client.list_collections():
         milvus_client.create_collection(
             collection_name=config.MILVUS_COLLECTION,
-            dimension=config.MILVUS_DIM,
+            dimension=config.EMBEDDING_DIM,
             primary_field_name="chunk_id",
             id_type="str",
             max_length=65_000,
