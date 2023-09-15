@@ -2,7 +2,6 @@ from milvuskafka.milvus_insert import MilvusInsert
 from milvuskafka.milvus_search import MilvusSearch
 from milvuskafka.hn_parse import HackerNewsParse
 from milvuskafka.embedder import Embedder
-import milvuskafka.values as values
 from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 
