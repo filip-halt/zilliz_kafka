@@ -15,4 +15,3 @@ client = r.get_client()
 client.request_documents("Whats hackernews top app?", 5)
 # Async read response
 pprint(client.parse_response())
-r.stop()

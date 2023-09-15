@@ -12,4 +12,3 @@ KAFKA_REPLICATION_FACTOR: 3 # 3 required for conflunet cloud
 
 EMBEDDING_MODEL: BAAI/bge-small-en-v1.5 # Huggingface sentence transformer model to use
 EMBEDDING_DIM: 384 # Output dimension of model
-
