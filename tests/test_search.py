@@ -18,7 +18,7 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 @pytest.fixture
 def runner_and_sinks():
     config = Configuration()
-    config.MILVUS_DIM = 3
+    config.EMBEDDING_DIM = 3
     config.KAFKA_BASE_CONFIGS = {
         "bootstrap.servers": "localhost:9094",
         "queue.buffering.max.ms": "10"
