@@ -1,0 +1,12 @@
+KAFKA_SERVER: your_server
+
+KAFKA_USERNAME: your_username
+
+KAFKA_PASSWORD: your_password
+
+MILVUS_URI: your_uri
+
+MILVUS_TOKEN: your_token
+
+KAFKA_REPLICATION_FACTOR: 3 
+

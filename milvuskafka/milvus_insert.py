@@ -6,8 +6,8 @@ from threading import Event, Thread
 
 from confluent_kafka import Consumer
 from pymilvus import MilvusClient
+from milvuskafka.config import Configuration
 
-import milvuskafka.config as config
 from milvuskafka.datatypes import MilvusDocument
 
 logger = logging.getLogger("KafkaInsertLogger")
@@ -19,12 +19,13 @@ logger.addHandler(ch)
 
 
 class MilvusInsert:
-    def __init__(self):
+    def __init__(self, config: Configuration):
+        self.config = config
         # Milvus client for operation on the Milvus cluster, assumes that collection made and loaded
         self.milvus_client = MilvusClient(
-            uri=config.MILVUS_URI, token=config.MILVUS_TOKEN
+            uri=self.config.MILVUS_URI, token=self.config.MILVUS_TOKEN
         )
-        self.kafka_consumer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+        self.kafka_consumer_config = deepcopy(self.config.KAFKA_BASE_CONFIGS)
         self.kafka_consumer_config.update(
             {
                 "enable.auto.commit": False,
@@ -34,7 +35,7 @@ class MilvusInsert:
         )
         # Kafka consumer on predifiend topic for insert requests
         self.consumer = Consumer(self.kafka_consumer_config)
-        self.consumer.subscribe([config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"]])
+        self.consumer.subscribe([self.config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"]])
 
     def start(self):
         # Start listening to inserts
@@ -52,8 +53,7 @@ class MilvusInsert:
         # Continue running thread while stop_flag isnt set
         while not stop_flag.is_set():
             # Poll for new message, non-blocking in order for event flag to work
-            msg = self.consumer.poll(timeout=config.KAKFA_POLL_TIMEOUT)
-            logger.debug("{msg}")
+            msg = self.consumer.poll(timeout=self.config.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
                 insert_vals = MilvusDocument(**json.loads(msg.value()))
@@ -71,7 +71,7 @@ class MilvusInsert:
         data = insert_val.model_dump(exclude_none=True)
         # Insert data into Milvus
         self.milvus_client.insert(
-            collection_name=config.MILVUS_COLLECTION,
+            collection_name=self.config.MILVUS_COLLECTION,
             data=[data],
         )
         logger.debug("Inserted chunk_id: %s", insert_val.chunk_id)

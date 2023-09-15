@@ -1,10 +1,11 @@
 import time
 from confluent_kafka.admin import AdminClient, NewTopic
 from pymilvus import MilvusClient
-import milvuskafka.config as config
+
+from milvuskafka.config import Configuration
 
 
-def setup_milvus(overwrite=True):
+def setup_milvus(config: Configuration, overwrite=True):
     milvus_client = MilvusClient(uri=config.MILVUS_URI, token=config.MILVUS_TOKEN)
 
     if config.MILVUS_COLLECTION in milvus_client.list_collections() and overwrite:
@@ -22,8 +23,8 @@ def setup_milvus(overwrite=True):
         )
 
 
-def setup_kafka(overwrite=True):
-    admin = AdminClient(config.KAFKA_DEFAULT_CONFIGS)
+def setup_kafka(config: Configuration, overwrite=True):
+    admin = AdminClient(config.KAFKA_BASE_CONFIGS)
     if overwrite:
         try:
             fs = admin.delete_topics(list(config.KAFKA_TOPICS.values()))
@@ -31,7 +32,6 @@ def setup_kafka(overwrite=True):
                 f.result()
         except:
             pass
-
     new_topics = [
         NewTopic(
             topic, num_partitions=1, replication_factor=config.KAFKA_REPLICATION_FACTOR
