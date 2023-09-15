@@ -25,7 +25,7 @@ class MilvusInsert:
         self.milvus_client = MilvusClient(
             uri=self.config.MILVUS_URI, token=self.config.MILVUS_TOKEN
         )
-        self.kafka_consumer_config = deepcopy(self.config.KAFKA_DEFAULT_CONFIGS)
+        self.kafka_consumer_config = deepcopy(self.config.KAFKA_BASE_CONFIGS)
         self.kafka_consumer_config.update(
             {
                 "enable.auto.commit": False,
@@ -54,7 +54,6 @@ class MilvusInsert:
         while not stop_flag.is_set():
             # Poll for new message, non-blocking in order for event flag to work
             msg = self.consumer.poll(timeout=self.config.KAKFA_POLL_TIMEOUT)
-            logger.debug("{msg}")
             # If a message was caught, process it
             if msg is not None:
                 insert_vals = MilvusDocument(**json.loads(msg.value()))

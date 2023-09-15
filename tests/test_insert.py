@@ -13,30 +13,30 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 
 @pytest.fixture
-def runner_and_producer():
+def runner_and_sinks():
     config = Configuration()
     config.MILVUS_DIM = 3
-    config.KAFKA_DEFAULT_CONFIGS = {
+    config.KAFKA_BASE_CONFIGS = {
         "bootstrap.servers": "localhost:9094",
         "queue.buffering.max.ms": "10"
     }
     setup_kafka(config)
     setup_milvus(config)
-    insert_runner = MilvusInsert()
+    insert_runner = MilvusInsert(config)
     insert_runner.start()
-    kafka_producer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+    kafka_producer_config = deepcopy(config.KAFKA_BASE_CONFIGS)
     kafka_producer_config.update(
         {
             "queue.buffering.max.ms": 1,
         }
     )
     producer = Producer(kafka_producer_config)
-    yield insert_runner, producer
+    yield insert_runner, producer, config
     insert_runner.stop()
 
 
-def test_input(runner_and_producer: Tuple[MilvusInsert, Producer]):
-    r, producer = runner_and_producer
+def test_input(runner_and_sinks: Tuple[MilvusInsert, Producer, Configuration]):
+    r, producer, config = runner_and_sinks
     test_doc = MilvusDocument(
         chunk_id="1",
         doc_id="1",

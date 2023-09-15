@@ -30,8 +30,8 @@ class MilvusSearch:
             uri=config.MILVUS_URI, token=config.MILVUS_TOKEN
         )
         # Kafka configs
-        self.kafka_producer_config = config.KAFKA_DEFAULT_CONFIGS
-        self.kafka_consumer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+        self.kafka_producer_config = config.KAFKA_BASE_CONFIGS
+        self.kafka_consumer_config = deepcopy(config.KAFKA_BASE_CONFIGS)
         self.kafka_consumer_config.update(
             {
                 "enable.auto.commit": False,
@@ -63,7 +63,7 @@ class MilvusSearch:
         # Continue running thread while stop_flag isnt set
         while not stop_flag.is_set():
             # Poll for new message, non-blocking in order for event flag to work
-            msg = self.consumer.poll(timeout=config.KAKFA_POLL_TIMEOUT)
+            msg = self.consumer.poll(timeout=self.config.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
                 search_vals = MilvusSearchRequest(**json.loads(msg.value()))
@@ -82,7 +82,7 @@ class MilvusSearch:
         # Search the collection for the given embedding
         logger.debug("Searching query_id: %s", search_vals.query_id)
         res = self.milvus_client.search(
-            collection_name=config.MILVUS_COLLECTION,
+            collection_name=self.config.MILVUS_COLLECTION,
             data=[search_vals.embedding],
             limit=search_vals.top_k,
             output_fields=["*"],
@@ -107,7 +107,7 @@ class MilvusSearch:
     def respond(self, respond_vals: MilvusSearchResponse):
         # Send the results back through the desired topic
         self.producer.produce(
-            topic=config.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"],
+            topic=self.config.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"],
             value=json.dumps(respond_vals.model_dump(exclude_none=True)),
         )
         logger.debug("Search on query_id: %s sent result back", respond_vals.query_id)

@@ -24,7 +24,7 @@ def setup_milvus(config: Configuration, overwrite=True):
 
 
 def setup_kafka(config: Configuration, overwrite=True):
-    admin = AdminClient(config.KAFKA_DEFAULT_CONFIGS)
+    admin = AdminClient(config.KAFKA_BASE_CONFIGS)
     if overwrite:
         try:
             fs = admin.delete_topics(list(config.KAFKA_TOPICS.values()))
@@ -32,7 +32,6 @@ def setup_kafka(config: Configuration, overwrite=True):
                 f.result()
         except:
             pass
-
     new_topics = [
         NewTopic(
             topic, num_partitions=1, replication_factor=config.KAFKA_REPLICATION_FACTOR

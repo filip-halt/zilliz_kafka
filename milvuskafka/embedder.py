@@ -31,8 +31,8 @@ class Embedder:
     def __init__(self, config: Configuration):
         # Kafka configs
         self.config = config
-        self.kafka_producer_config =  self.config.KAFKA_DEFAULT_CONFIGS
-        self.kafka_consumer_config = deepcopy(self.config.KAFKA_DEFAULT_CONFIGS)
+        self.kafka_producer_config =  self.config.KAFKA_BASE_CONFIGS
+        self.kafka_consumer_config = deepcopy(self.config.KAFKA_BASE_CONFIGS)
         self.kafka_consumer_config.update(
             {
                 "enable.auto.commit": False,

@@ -15,10 +15,10 @@ class Runner:
         self.embedder = Embedder(self.config)
 
     def start(self):
-        self.insert_runner.run()
-        self.search_runner.run()
-        self.hn_runner.run()
-        self.embedder.run()
+        self.insert_runner.start()
+        self.search_runner.start()
+        self.hn_runner.start()
+        self.embedder.start()
 
     def stop(self):
         self.insert_runner.stop()

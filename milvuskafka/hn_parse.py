@@ -27,7 +27,7 @@ class HackerNewsParse:
         # Kafka configs
         self.config = config
 
-        self.kafka_producer_config = self.config.KAFKA_DEFAULT_CONFIGS
+        self.kafka_producer_config = self.config.KAFKA_BASE_CONFIGS
         self.milvus_client = MilvusClient(
             uri=self.config.MILVUS_URI, token=self.config.MILVUS_TOKEN
         )
@@ -90,7 +90,6 @@ class HackerNewsParse:
         res = self.milvus_client.query(
             self.config.MILVUS_COLLECTION, filter=expr, output_fields=["id"]
         )
-        print(res)
         return len(res) != 0
 
     def get_new_hacker_news_posts(self):

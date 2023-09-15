@@ -20,7 +20,7 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 @pytest.fixture
 def runner_and_sinks():
     config = Configuration()
-    config.KAFKA_DEFAULT_CONFIGS = {
+    config.KAFKA_BASE_CONFIGS = {
         "bootstrap.servers": "localhost:9094",
         "queue.buffering.max.ms": "10"
     }
@@ -28,16 +28,16 @@ def runner_and_sinks():
     config.MILVUS_TOKEN = ""
     setup_kafka(config)
     # setup_milvus()
-    embed_runner = Embedder()
+    embed_runner = Embedder(config)
     embed_runner.start()
-    kafka_producer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+    kafka_producer_config = deepcopy(config.KAFKA_BASE_CONFIGS)
     kafka_producer_config.update(
         {
             "queue.buffering.max.ms": 1,
         }
     )
     producer = Producer(kafka_producer_config)
-    kafka_consumer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+    kafka_consumer_config = deepcopy(config.KAFKA_BASE_CONFIGS)
     kafka_consumer_config.update(
         {
             "enable.auto.commit": False,
@@ -51,12 +51,12 @@ def runner_and_sinks():
     consumer_insert.subscribe([config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"]])
     consumer_search.subscribe([config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"]])
 
-    yield embed_runner, producer, consumer_search, consumer_insert
+    yield embed_runner, producer, consumer_search, consumer_insert, config
     embed_runner.stop()
 
-def test_embedder(runner_and_sinks: Tuple[Embedder, Producer, Consumer, Consumer]):
+def test_embedder(runner_and_sinks: Tuple[Embedder, Producer, Consumer, Consumer, Configuration]):
 
-    r, producer, consumer_search, consumer_insert = runner_and_sinks
+    r, producer, consumer_search, consumer_insert, config = runner_and_sinks
     # Test all the different hn posts and search types
     test_search = SearchRequest(
         query_id="blah",

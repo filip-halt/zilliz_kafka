@@ -2,7 +2,7 @@ import os
 import yaml
 
 class Configuration():
-    def init(self, config_yaml_path = None):
+    def __init__(self, config_yaml_path = None):
         if config_yaml_path is not None:
             f = open(config_yaml_path)
             data_map = yaml.safe_load(f)

@@ -16,25 +16,25 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 
 @pytest.fixture
-def runner_and_producer_consumer():
+def runner_and_sinks():
     config = Configuration()
     config.MILVUS_DIM = 3
-    config.KAFKA_DEFAULT_CONFIGS = {
+    config.KAFKA_BASE_CONFIGS = {
         "bootstrap.servers": "localhost:9094",
         "queue.buffering.max.ms": "10"
     }
     setup_kafka(config)
     setup_milvus(config)
-    search_runner = MilvusSearch()
+    search_runner = MilvusSearch(config)
     search_runner.start()
-    kafka_producer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+    kafka_producer_config = deepcopy(config.KAFKA_BASE_CONFIGS)
     kafka_producer_config.update(
         {
             "queue.buffering.max.ms": 1,
         }
     )
     producer = Producer(kafka_producer_config)
-    kafka_consumer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+    kafka_consumer_config = deepcopy(config.KAFKA_BASE_CONFIGS)
     kafka_consumer_config.update(
         {
             "enable.auto.commit": False,
@@ -45,12 +45,12 @@ def runner_and_producer_consumer():
 
     consumer = Consumer(kafka_consumer_config)
     consumer.subscribe([config.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"]])
-    yield search_runner, producer, consumer
+    yield search_runner, producer, consumer, config
     search_runner.stop()
 
 
-def test_search(runner_and_producer_consumer: Tuple[MilvusSearch, Producer, Consumer]):
-    r, producer, consumer = runner_and_producer_consumer
+def test_search(runner_and_sinks: Tuple[MilvusSearch, Producer, Consumer, Configuration]):
+    r, producer, consumer, config = runner_and_sinks
     r.milvus_client.insert(
         config.MILVUS_COLLECTION,
         data=[
