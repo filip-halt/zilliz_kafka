@@ -65,13 +65,11 @@ class MilvusSearch:
             msg = self.consumer.poll(timeout=config.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
-                logger.debug("Got here")
                 search_vals = MilvusSearchRequest(**json.loads(msg.value()))
                 # Get search response
                 res = self.search(search_vals)
                 # Produce the results
                 self.respond(res)
-                logger.debug("Got here2")
                 # Commit that the message was processed
                 self.consumer.commit(msg)
         # Flush producer on finish

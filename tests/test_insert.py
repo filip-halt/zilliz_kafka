@@ -6,7 +6,7 @@ from typing import Tuple
 import pytest
 from confluent_kafka import Producer
 
-import milvuskafka.values as values
+import milvuskafka.config as config
 from milvuskafka.datatypes import MilvusDocument
 from milvuskafka.milvus_insert import MilvusInsert
 from milvuskafka.setup_services import setup_kafka, setup_milvus
@@ -14,12 +14,16 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 @pytest.fixture
 def runner_and_producer():
-    values.MILVUS_DIM = 3
+    config.MILVUS_DIM = 3
+    config.KAFKA_DEFAULT_CONFIGS = {
+        "bootstrap.servers": "localhost:9094",
+        "queue.buffering.max.ms": "10"
+    }
     setup_kafka()
     setup_milvus()
     insert_runner = MilvusInsert()
     insert_runner.start()
-    kafka_producer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+    kafka_producer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
     kafka_producer_config.update(
         {
             "queue.buffering.max.ms": 1,
@@ -41,14 +45,14 @@ def test_input(runner_and_producer: Tuple[MilvusInsert, Producer]):
         embedding=[0, 0, 0],
     )
     producer.produce(
-        topic=values.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"],
+        topic=config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"],
         key="",
         value=json.dumps(test_doc.model_dump()),
     )
     producer.flush()
     # Need to sleep to let values flow
     time.sleep(15)
-    r.milvus_client.flush(values.MILVUS_COLLECTION)
-    res = r.milvus_client.query(values.MILVUS_COLLECTION, 'chunk_id == "1"')
+    r.milvus_client.flush(config.MILVUS_COLLECTION)
+    res = r.milvus_client.query(config.MILVUS_COLLECTION, 'chunk_id == "1"')
     assert len(res) == 1
     assert res[0]["chunk_id"] == "1"

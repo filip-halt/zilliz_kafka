@@ -66,6 +66,9 @@ class HackerNewsParse:
                 f"Sleeping for {config.HACKER_NEWS_PARSE_SLEEP} seconds before next batch"
             )
             time.sleep(config.HACKER_NEWS_PARSE_SLEEP)
+        # Flush producer on finish
+        self.producer.flush()
+        logger.debug("Exiting Producer run() loop")
 
     def respond(self, post: HackerNewsPost):
         # Only send the post if it doesnt exist already in milvus

@@ -6,7 +6,7 @@ from typing import Tuple
 import pytest
 from confluent_kafka import Producer, Consumer
 
-import milvuskafka.values as values
+import milvuskafka.config as config
 from milvuskafka.datatypes import (
     MilvusDocument,
     SearchRequest,
@@ -19,19 +19,24 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 @pytest.fixture
 def runner_and_sinks():
-    values.MILVUS_DIM = 384
+    config.KAFKA_DEFAULT_CONFIGS = {
+        "bootstrap.servers": "localhost:9094",
+        "queue.buffering.max.ms": "10"
+    }
+    config.MILVUS_URI = "http://localhost:19530"
+    config.MILVUS_TOKEN = ""
     setup_kafka()
     # setup_milvus()
     embed_runner = Embedder()
     embed_runner.start()
-    kafka_producer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+    kafka_producer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
     kafka_producer_config.update(
         {
             "queue.buffering.max.ms": 1,
         }
     )
     producer = Producer(kafka_producer_config)
-    kafka_consumer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+    kafka_consumer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
     kafka_consumer_config.update(
         {
             "enable.auto.commit": False,
@@ -42,8 +47,8 @@ def runner_and_sinks():
 
     consumer_insert = Consumer(kafka_consumer_config)
     consumer_search = Consumer(kafka_consumer_config)
-    consumer_insert.subscribe([values.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"]])
-    consumer_search.subscribe([values.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"]])
+    consumer_insert.subscribe([config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"]])
+    consumer_search.subscribe([config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"]])
 
     yield embed_runner, producer, consumer_search, consumer_insert
     embed_runner.stop()
@@ -73,17 +78,17 @@ def test_embedder(runner_and_sinks: Tuple[Embedder, Producer, Consumer, Consumer
         text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vehicula ligula ac nibh tincidunt, ut pharetra augue efficitur. ",
     )
     producer.produce(
-        topic=values.KAFKA_TOPICS["REQUEST_TOPIC"],
+        topic=config.KAFKA_TOPICS["REQUEST_TOPIC"],
         key="insert",
         value=json.dumps(test_hnpost_text.model_dump()),
     )
     producer.produce(
-        topic=values.KAFKA_TOPICS["REQUEST_TOPIC"],
+        topic=config.KAFKA_TOPICS["REQUEST_TOPIC"],
         key="insert",
         value=json.dumps(test_hnpost_url.model_dump()),
     )
     producer.produce(
-        topic=values.KAFKA_TOPICS["REQUEST_TOPIC"],
+        topic=config.KAFKA_TOPICS["REQUEST_TOPIC"],
         key="search",
         value=json.dumps(test_search.model_dump()),
     )
