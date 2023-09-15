@@ -6,7 +6,7 @@ from typing import Tuple
 import pytest
 from confluent_kafka import Producer, Consumer
 
-import milvuskafka.values as values
+import milvuskafka.config as config
 from milvuskafka.datatypes import (
     MilvusDocument,
     MilvusSearchRequest,
@@ -18,19 +18,23 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 @pytest.fixture
 def runner_and_producer_consumer():
-    values.MILVUS_DIM = 3
+    config.MILVUS_DIM = 3
+    config.KAFKA_DEFAULT_CONFIGS = {
+        "bootstrap.servers": "localhost:9094",
+        "queue.buffering.max.ms": "10"
+    }
     setup_kafka()
     setup_milvus()
     search_runner = MilvusSearch()
     search_runner.start()
-    kafka_producer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+    kafka_producer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
     kafka_producer_config.update(
         {
             "queue.buffering.max.ms": 1,
         }
     )
     producer = Producer(kafka_producer_config)
-    kafka_consumer_config = deepcopy(values.KAFKA_DEFAULT_CONFIGS)
+    kafka_consumer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
     kafka_consumer_config.update(
         {
             "enable.auto.commit": False,
@@ -40,7 +44,7 @@ def runner_and_producer_consumer():
     )
 
     consumer = Consumer(kafka_consumer_config)
-    consumer.subscribe([values.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"]])
+    consumer.subscribe([config.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"]])
     yield search_runner, producer, consumer
     search_runner.stop()
 
@@ -48,7 +52,7 @@ def runner_and_producer_consumer():
 def test_search(runner_and_producer_consumer: Tuple[MilvusSearch, Producer, Consumer]):
     r, producer, consumer = runner_and_producer_consumer
     r.milvus_client.insert(
-        values.MILVUS_COLLECTION,
+        config.MILVUS_COLLECTION,
         data=[
             {
                 "chunk_id": "1",
@@ -66,7 +70,7 @@ def test_search(runner_and_producer_consumer: Tuple[MilvusSearch, Producer, Cons
         top_k=1,
     )
     producer.produce(
-        topic=values.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
+        topic=config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
         key="",
         value=json.dumps(test_search.model_dump()),
     )

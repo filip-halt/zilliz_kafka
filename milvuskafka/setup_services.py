@@ -1,19 +1,19 @@
 import time
 from confluent_kafka.admin import AdminClient, NewTopic
-from pymilvus import MilvusClient, utility
-import milvuskafka.values as values
+from pymilvus import MilvusClient
+import milvuskafka.config as config
 
 
 def setup_milvus(overwrite=True):
-    milvus_client = MilvusClient(uri=values.MILVUS_URI, token=values.MILVUS_TOKEN)
+    milvus_client = MilvusClient(uri=config.MILVUS_URI, token=config.MILVUS_TOKEN)
 
-    if values.MILVUS_COLLECTION in milvus_client.list_collections() and overwrite:
-        milvus_client.drop_collection(values.MILVUS_COLLECTION)
+    if config.MILVUS_COLLECTION in milvus_client.list_collections() and overwrite:
+        milvus_client.drop_collection(config.MILVUS_COLLECTION)
 
-    if values.MILVUS_COLLECTION not in milvus_client.list_collections():
+    if config.MILVUS_COLLECTION not in milvus_client.list_collections():
         milvus_client.create_collection(
-            collection_name=values.MILVUS_COLLECTION,
-            dimension=values.MILVUS_DIM,
+            collection_name=config.MILVUS_COLLECTION,
+            dimension=config.MILVUS_DIM,
             primary_field_name="chunk_id",
             id_type="str",
             max_length=65_000,
@@ -23,10 +23,10 @@ def setup_milvus(overwrite=True):
 
 
 def setup_kafka(overwrite=True):
-    admin = AdminClient(values.KAFKA_DEFAULT_CONFIGS)
+    admin = AdminClient(config.KAFKA_DEFAULT_CONFIGS)
     if overwrite:
         try:
-            fs = admin.delete_topics(list(values.KAFKA_TOPICS.values()))
+            fs = admin.delete_topics(list(config.KAFKA_TOPICS.values()))
             for _, f in fs.items():
                 f.result()
         except:
@@ -34,9 +34,9 @@ def setup_kafka(overwrite=True):
 
     new_topics = [
         NewTopic(
-            topic, num_partitions=1, replication_factor=values.KAFKA_REPLICATION_FACTOR
+            topic, num_partitions=1, replication_factor=config.KAFKA_REPLICATION_FACTOR
         )
-        for topic in list(values.KAFKA_TOPICS.values())
+        for topic in list(config.KAFKA_TOPICS.values())
     ]
     # TODO: Retry mechanism for when it is in deletion state
     time.sleep(1)
@@ -50,7 +50,3 @@ def setup_kafka(overwrite=True):
         except Exception as e:
             print("Failed to create topic {}: {}".format(topic, e))
 
-
-if __name__ == "__main__":
-    # setup_milvus(dim=3, overwrite=True)
-    setup_kafka()
