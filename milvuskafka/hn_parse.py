@@ -23,11 +23,13 @@ logger.addHandler(ch)
 
 
 class HackerNewsParse:
-    def __init__(self):
+    def __init__(self,  config: config.Configuration):
         # Kafka configs
-        self.kafka_producer_config = config.KAFKA_DEFAULT_CONFIGS
+        self.config = config
+
+        self.kafka_producer_config = self.config.KAFKA_DEFAULT_CONFIGS
         self.milvus_client = MilvusClient(
-            uri=config.MILVUS_URI, token=config.MILVUS_TOKEN
+            uri=self.config.MILVUS_URI, token=self.config.MILVUS_TOKEN
         )
 
         # Kafka producer for new HN posts
@@ -63,9 +65,9 @@ class HackerNewsParse:
                     # Respond with post info if valid
                     self.respond(post_data)
             logger.debug(
-                f"Sleeping for {config.HACKER_NEWS_PARSE_SLEEP} seconds before next batch"
+                f"Sleeping for {self.config.HACKER_NEWS_PARSE_SLEEP} seconds before next batch"
             )
-            time.sleep(config.HACKER_NEWS_PARSE_SLEEP)
+            time.sleep(self.config.HACKER_NEWS_PARSE_SLEEP)
         # Flush producer on finish
         self.producer.flush()
         logger.debug("Exiting Producer run() loop")
@@ -74,7 +76,7 @@ class HackerNewsParse:
         # Only send the post if it doesnt exist already in milvus
         if not self.post_exists(post):
             self.producer.produce(
-                topic=config.KAFKA_TOPICS["REQUEST_TOPIC"],
+                topic=self.config.KAFKA_TOPICS["REQUEST_TOPIC"],
                 value=json.dumps(post.model_dump(exclude_none=True)),
                 key="insert",
             )
@@ -86,13 +88,13 @@ class HackerNewsParse:
         # Query for the post to check if it already exists within the collection
         expr = f"id == {post.id}"
         res = self.milvus_client.query(
-            config.MILVUS_COLLECTION, filter=expr, output_fields=["id"]
+            self.config.MILVUS_COLLECTION, filter=expr, output_fields=["id"]
         )
         print(res)
         return len(res) != 0
 
     def get_new_hacker_news_posts(self):
-        response = requests.get(config.HACKER_NEWS_API_URL)
+        response = requests.get(self.config.HACKER_NEWS_API_URL)
         if response.status_code == 200:
             post_ids = json.loads(response.text)
             return post_ids

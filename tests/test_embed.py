@@ -5,8 +5,8 @@ from typing import Tuple
 
 import pytest
 from confluent_kafka import Producer, Consumer
+from milvuskafka.config import Configuration
 
-import milvuskafka.config as config
 from milvuskafka.datatypes import (
     MilvusDocument,
     SearchRequest,
@@ -19,13 +19,14 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 @pytest.fixture
 def runner_and_sinks():
+    config = Configuration()
     config.KAFKA_DEFAULT_CONFIGS = {
         "bootstrap.servers": "localhost:9094",
         "queue.buffering.max.ms": "10"
     }
     config.MILVUS_URI = "http://localhost:19530"
     config.MILVUS_TOKEN = ""
-    setup_kafka()
+    setup_kafka(config)
     # setup_milvus()
     embed_runner = Embedder()
     embed_runner.start()

@@ -5,8 +5,8 @@ from typing import Tuple
 
 import pytest
 from confluent_kafka import Producer
+from milvuskafka.config import Configuration
 
-import milvuskafka.config as config
 from milvuskafka.datatypes import MilvusDocument
 from milvuskafka.milvus_insert import MilvusInsert
 from milvuskafka.setup_services import setup_kafka, setup_milvus
@@ -14,13 +14,14 @@ from milvuskafka.setup_services import setup_kafka, setup_milvus
 
 @pytest.fixture
 def runner_and_producer():
+    config = Configuration()
     config.MILVUS_DIM = 3
     config.KAFKA_DEFAULT_CONFIGS = {
         "bootstrap.servers": "localhost:9094",
         "queue.buffering.max.ms": "10"
     }
-    setup_kafka()
-    setup_milvus()
+    setup_kafka(config)
+    setup_milvus(config)
     insert_runner = MilvusInsert()
     insert_runner.start()
     kafka_producer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)

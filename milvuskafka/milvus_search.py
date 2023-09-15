@@ -6,8 +6,8 @@ from threading import Event, Thread
 
 from confluent_kafka import Consumer, Producer
 from pymilvus import MilvusClient
+from milvuskafka.config import Configuration
 
-import milvuskafka.config as config
 from milvuskafka.datatypes import (
     MilvusDocument,
     MilvusSearchRequest,
@@ -23,7 +23,8 @@ logger.addHandler(ch)
 
 
 class MilvusSearch:
-    def __init__(self):
+    def __init__(self, config: Configuration):
+        self.config = config
         # Milvus client for operation on the Milvus cluster, assumes that collection made and loaded
         self.milvus_client = MilvusClient(
             uri=config.MILVUS_URI, token=config.MILVUS_TOKEN

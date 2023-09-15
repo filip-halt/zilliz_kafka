@@ -7,7 +7,7 @@ from typing import List
 
 from confluent_kafka import Consumer, Producer
 
-import milvuskafka.config as config
+from milvuskafka.config import Configuration
 from milvuskafka.datatypes import (
     MilvusDocument,
     HackerNewsPost,
@@ -28,10 +28,11 @@ logger.addHandler(ch)
 
 
 class Embedder:
-    def __init__(self):
+    def __init__(self, config: Configuration):
         # Kafka configs
-        self.kafka_producer_config = config.KAFKA_DEFAULT_CONFIGS
-        self.kafka_consumer_config = deepcopy(config.KAFKA_DEFAULT_CONFIGS)
+        self.config = config
+        self.kafka_producer_config =  self.config.KAFKA_DEFAULT_CONFIGS
+        self.kafka_consumer_config = deepcopy(self.config.KAFKA_DEFAULT_CONFIGS)
         self.kafka_consumer_config.update(
             {
                 "enable.auto.commit": False,
@@ -42,7 +43,7 @@ class Embedder:
 
         # Kafka consumer on request topics, can include search and insert requests
         self.consumer = Consumer(self.kafka_consumer_config)
-        self.consumer.subscribe([config.KAFKA_TOPICS["REQUEST_TOPIC"]])
+        self.consumer.subscribe([ self.config.KAFKA_TOPICS["REQUEST_TOPIC"]])
 
         # Producer for both insert and search requests
         self.producer = Producer(self.kafka_producer_config)
@@ -68,7 +69,7 @@ class Embedder:
         # Continue running thread while stop_flag isnt set
         while not stop_flag.is_set():
             # Poll for new message, non-blocking in order for event flag to work
-            msg = self.consumer.poll(timeout=config.KAKFA_POLL_TIMEOUT)
+            msg = self.consumer.poll(timeout= self.config.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
                 # Broad try except for now to skip faulty data
@@ -161,7 +162,7 @@ class Embedder:
         # Produce the milvus documents to the Insert topic
         for x in respond_vals:
             self.producer.produce(
-                topic=config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"],
+                topic= self.config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"],
                 value=json.dumps(x.model_dump(exclude_none=True)),
             )
             logger.debug(f"Insert for document: {x.doc_id} sent to insert topic")
@@ -169,7 +170,7 @@ class Embedder:
     def respond_search(self, respond_val: MilvusSearchRequest):
         # Produce the search reqeusts to the search topic
         self.producer.produce(
-            topic=config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
+            topic= self.config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
             value=json.dumps(respond_val.model_dump(exclude_none=True)),
         )
         logger.debug(
