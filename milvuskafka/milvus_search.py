@@ -102,7 +102,7 @@ class MilvusSearch:
             len(search_res),
         )
         # Convert to MilvusSearchResponse and return
-        return MilvusSearchResponse(query_id=search_vals.query_id, results=search_res)
+        return MilvusSearchResponse(query_id=search_vals.query_id, results=search_res, text=search_vals.text)
 
     def respond(self, respond_vals: MilvusSearchResponse):
         # Send the results back through the desired topic

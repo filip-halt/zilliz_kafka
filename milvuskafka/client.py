@@ -1,5 +1,6 @@
 from copy import deepcopy
 import json
+from typing import Union
 import uuid
 from milvuskafka.config import Configuration
 from confluent_kafka import Consumer, Producer
@@ -41,8 +42,23 @@ class Client():
         )
         self.producer.flush()
     
-    def parse_response(self) -> MilvusSearchResponse:
+    def parse_response(self, augment: bool = True) -> Union[MilvusSearchResponse, str]:
         msg = self.consumer.poll()
-        search_vals = MilvusSearchResponse(**json.loads(msg.value()))
+        res = MilvusSearchResponse(**json.loads(msg.value()))
+        if augment and len(res.results)!=0:
+            import openai
+            openai.api_key = self.config.OPENAI_KEY
+            context = res.results[0].chunk
+            context = context.replace("\n", "")
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a question answering bot that answers questions based on provided context."},
+                    {"role": "user", "content": "The context is:\n " + context + "\n The question is: " + res.text}
+                ]
+            )
+            res = response['choices'][0]['message']['content']
+    
         self.consumer.commit(msg)
-        return search_vals.model_dump()
+
+        return res

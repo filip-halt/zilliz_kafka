@@ -2,7 +2,7 @@ from pprint import pprint
 import time
 from milvuskafka.runner import Runner
 
-r = Runner("path/to/config")
+r = Runner("path/to/config/yaml")
 # Create the Milvus Collection and Kafka Topics
 r.setup()
 # Start the nodes
