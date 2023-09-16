@@ -38,3 +38,6 @@ class Configuration():
 
         self.EMBEDDING_MODEL = data_map.get("EMBEDDING_MODEL", os.environ.get('EMBEDDING_MODEL', "BAAI/bge-small-en-v1.5"))
         self.EMBEDDING_DIM =  data_map.get("EMBEDDING_DIM", os.environ.get('EMBEDDING_DIM', 384))
+
+        self.OPENAI_KEY =  data_map.get("OPENAI_KEY", os.environ.get('OPENAI_KEY', ""))
+

@@ -108,7 +108,7 @@ class Embedder:
         embedding = self.embedder.embed_query(search.text)
         # Format request to the correct pydantic
         search_request = MilvusSearchRequest(
-            query_id=search.query_id, embedding=embedding, top_k=search.top_k
+            query_id=search.query_id, embedding=embedding, top_k=search.top_k, text=search.text
         )
         return search_request
 

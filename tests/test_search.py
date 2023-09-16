@@ -66,6 +66,7 @@ def test_search(runner_and_sinks: Tuple[MilvusSearch, Producer, Consumer, Config
     )
     test_search = MilvusSearchRequest(
         query_id="blah",
+        text="blah",
         embedding=[0, 0, 0],
         top_k=1,
     )

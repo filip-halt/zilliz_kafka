@@ -16,6 +16,7 @@ class MilvusDocument(BaseModel):
 # Milvus consumer model for searches
 class MilvusSearchRequest(BaseModel):
     query_id: str # Query ID that connects response back to query
+    text: str
     embedding: List[float]
     top_k: int
 
@@ -23,6 +24,7 @@ class MilvusSearchRequest(BaseModel):
 # Milvus producer model for queries
 class MilvusSearchResponse(BaseModel):
     query_id: str
+    text: str
     results: List[MilvusDocument]
 
 
