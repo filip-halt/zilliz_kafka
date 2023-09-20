@@ -19,7 +19,7 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
-logger = logging.getLogger("KafkaEmbedderLog")
+logger = logging.getLogger("KafkaInsertEmbedderLog")
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -27,7 +27,7 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-class Embedder:
+class EmbedderInsert:
     def __init__(self, config: Configuration):
         # Kafka configs
         self.config = config
@@ -36,14 +36,14 @@ class Embedder:
         self.kafka_consumer_config.update(
             {
                 "enable.auto.commit": False,
-                "group.id": "Request_Consumers",
+                "group.id": "InsertEmbedder_Consumers",
                 "auto.offset.reset": "earliest",
             }
         )
 
         # Kafka consumer on request topics, can include search and insert requests
         self.consumer = Consumer(self.kafka_consumer_config)
-        self.consumer.subscribe([ self.config.KAFKA_TOPICS["REQUEST_TOPIC"]])
+        self.consumer.subscribe([ self.config.KAFKA_TOPICS["INSERT_EMBEDDING_TOPIC"]])
 
         # Producer for both insert and search requests
         self.producer = Producer(self.kafka_producer_config)
@@ -65,7 +65,7 @@ class Embedder:
         self.run_thread.join()
 
     def run(self, stop_flag: Event):
-        logger.debug("Started Embedder run() loop")
+        logger.debug("Started InsertEmbedder run() loop")
         # Continue running thread while stop_flag isnt set
         while not stop_flag.is_set():
             # Poll for new message, non-blocking in order for event flag to work
@@ -74,43 +74,20 @@ class Embedder:
             if msg is not None:
                 # Broad try except for now to skip faulty data
                 try:
-                    key = msg.key().decode()
-                    # If the msg key is an insert, we load the HackerNewsPost
-                    if key == "insert":
-                        post = HackerNewsPost(**json.loads(msg.value()))
-                        logger.debug(f"Recieved insert request with id: {post.id}")
-                        # Embed the post into a list of MilvusDocs, each containing a chunk
-                        res = self.embed_post(post)
-                        # Produce the result to the insert channel
-                        self.respond_insert(res)
-
-                    elif key == "search":
-                        post = SearchRequest(**json.loads(msg.value()))
-                        logger.debug(
-                            f"Recieved search request with query_id: {post.query_id}"
-                        )
-                        # Get search response
-                        res = self.embed_search(post)
-                        # Produce the results
-                        self.respond_search(res)
-                    # Commit that the message was processed
+                    post = HackerNewsPost(**json.loads(msg.value()))
+                    logger.debug(f"Recieved insert request with id: {post.id}")
+                    # Embed the post into a list of MilvusDocs, each containing a chunk
+                    res = self.embed_post(post)
+                    # Produce the result to the insert channel
+                    self.respond_insert(res)
                 except Exception:
                     pass
                 self.consumer.commit(msg)
                     
         # Flush producer on finish
         self.producer.flush()
-        logger.debug("Exiting Embedder run() loop")
+        logger.debug("Exiting InsertEmbedder run() loop")
         return
-
-    def embed_search(self, search: SearchRequest) -> MilvusSearchRequest:
-        # Embed the search text
-        embedding = self.embedder.embed_query(search.text)
-        # Format request to the correct pydantic
-        search_request = MilvusSearchRequest(
-            query_id=search.query_id, embedding=embedding, top_k=search.top_k, text=search.text
-        )
-        return search_request
 
     def embed_post(self, post: HackerNewsPost) -> List[MilvusDocument]:
         milvus_docs: List[MilvusDocument] = []
@@ -166,13 +143,3 @@ class Embedder:
                 value=json.dumps(x.model_dump(exclude_none=True)),
             )
             logger.debug(f"Insert for document: {x.doc_id} sent to insert topic")
-
-    def respond_search(self, respond_val: MilvusSearchRequest):
-        # Produce the search reqeusts to the search topic
-        self.producer.produce(
-            topic= self.config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
-            value=json.dumps(respond_val.model_dump(exclude_none=True)),
-        )
-        logger.debug(
-            f"Search with query_id: {respond_val.query_id} sent to search topic"
-        )
