@@ -1,0 +1,9 @@
+confluent-kafka==2.2.0
+unstructured==0.10.12
+urllib3==2.0.4
+pyYaml==5.4.1
+pydantic==2.3.0
+langchain==0.0.285
+pymilvus==2.3.0
+sentence-transformers==2.2.2
+openai==0.28.0
