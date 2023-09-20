@@ -2,7 +2,7 @@ from pprint import pprint
 import time
 from milvuskafka.runner import Runner
 
-r = Runner("path/to/config/yaml")
+r = Runner("config.yaml")
 # Create the Milvus Collection and Kafka Topics
 r.setup()
 # Start the nodes
@@ -15,3 +15,5 @@ client = r.get_client()
 client.request_documents("Whats hackernews top app?", 5)
 # Async read response
 pprint(client.parse_response())
+r.stop()
+

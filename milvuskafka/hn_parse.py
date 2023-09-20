@@ -52,7 +52,7 @@ class HackerNewsParse:
         while not stop_flag.is_set():
             post_ids = self.get_new_hacker_news_posts()
             logger.debug(f"There are {len(post_ids)} new posts")
-            for post_id in post_ids:
+            for post_id in post_ids[:5]:
                 # Grab post info for each post id
                 post_url = f"https://hacker-news.firebaseio.com/v0/item/{post_id}.json"
                 response = requests.get(post_url)
