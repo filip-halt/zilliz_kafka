@@ -7,6 +7,10 @@ r = Runner("config.yaml")
 r.setup()
 # Start the nodes
 r.start()
+
+# Grab the insert embedding topic
+r.config.KAFKA_TOPICS["INSERT_EMBEDDING_TOPIC"]
+
 # Sleep for data to flow
 time.sleep(20)
 # Create a client
