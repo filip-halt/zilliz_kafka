@@ -80,8 +80,8 @@ class EmbedderInsert:
                     res = self.embed_post(post)
                     # Produce the result to the insert channel
                     self.respond_insert(res)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Failed to embed post: {post.id}, {e}")
                 self.consumer.commit(msg)
                     
         # Flush producer on finish
@@ -142,4 +142,5 @@ class EmbedderInsert:
                 topic= self.config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"],
                 value=json.dumps(x.model_dump(exclude_none=True)),
             )
+            self.producer.flush()
             logger.debug(f"Insert for document: {x.doc_id} sent to insert topic")

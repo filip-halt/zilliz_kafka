@@ -35,6 +35,8 @@ class Runner:
     def setup(self, overwrite=True):
         setup_milvus(self.config, overwrite)
         setup_kafka(self.config, overwrite)
-    
-    def get_client(self):
-        return Client(self.config)
+
+    @staticmethod
+    def get_client(config_yaml_path: str = None):
+        config = Configuration(config_yaml_path)
+        return Client(config)

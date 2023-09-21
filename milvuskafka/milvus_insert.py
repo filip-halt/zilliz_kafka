@@ -56,8 +56,11 @@ class MilvusInsert:
             msg = self.consumer.poll(timeout=self.config.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
-                insert_vals = MilvusDocument(**json.loads(msg.value()))
-                self.insert(insert_vals)
+                try:
+                    insert_vals = MilvusDocument(**json.loads(msg.value()))
+                    self.insert(insert_vals)
+                except Exception as e:
+                    logger.debug(f"Failed to insert: {insert_vals.chunk_id}, {e}")
                 # Commit msg
                 self.consumer.commit(msg)
         logger.debug("Exiting MilvusInsert run() loop")
