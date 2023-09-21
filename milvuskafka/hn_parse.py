@@ -52,7 +52,7 @@ class HackerNewsParse:
         while not stop_flag.is_set():
             post_ids = self.get_new_hacker_news_posts()
             logger.debug(f"There are {len(post_ids)} new posts")
-            for post_id in post_ids[:5]:
+            for post_id in post_ids:
                 # Grab post info for each post id
                 post_url = f"https://hacker-news.firebaseio.com/v0/item/{post_id}.json"
                 response = requests.get(post_url)
@@ -76,9 +76,8 @@ class HackerNewsParse:
         # Only send the post if it doesnt exist already in milvus
         if not self.post_exists(post):
             self.producer.produce(
-                topic=self.config.KAFKA_TOPICS["REQUEST_TOPIC"],
+                topic=self.config.KAFKA_TOPICS["INSERT_EMBEDDING_TOPIC"],
                 value=json.dumps(post.model_dump(exclude_none=True)),
-                key="insert",
             )
             logger.debug(f"Post with ID {post.id} was produced")
         else:
@@ -98,5 +97,5 @@ class HackerNewsParse:
             post_ids = json.loads(response.text)
             return post_ids
         else:
-            print("Failed to fetch Hacker News posts.")
+            logger.debug("Failed to fetch Hacker News posts.")
             return []

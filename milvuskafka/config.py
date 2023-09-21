@@ -15,7 +15,9 @@ class Configuration():
             "SEARCH_RESPONSE_TOPIC": "SearchResponse",
             "SEARCH_REQUEST_TOPIC": "SearchRequest",
             "INSERT_REQUEST_TOPIC": "InsertRequest",
-            "REQUEST_TOPIC": "EmbeddingRequest",
+            "SEARCH_EMBEDDING_TOPIC": "SearchEmbeddingRequest",
+            "INSERT_EMBEDDING_TOPIC": "InsertEmbeddingRequest",
+
         }
 
         # Configs for KAFKA

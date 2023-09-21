@@ -8,7 +8,7 @@ r.setup()
 # Start the nodes
 r.start()
 # Sleep for data to flow
-time.sleep(10)
+time.sleep(20)
 # Create a client
 client = r.get_client()
 # Async request doc

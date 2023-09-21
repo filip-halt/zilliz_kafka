@@ -36,7 +36,7 @@ class Client():
         }
 
         self.producer.produce(
-            topic=self.config.KAFKA_TOPICS["REQUEST_TOPIC"],
+            topic=self.config.KAFKA_TOPICS["SEARCH_EMBEDDING_TOPIC"],
             key="search",
             value=json.dumps(request),
         )
@@ -45,7 +45,9 @@ class Client():
     def parse_response(self, augment: bool = True) -> Union[MilvusSearchResponse, str]:
         msg = self.consumer.poll()
         res = MilvusSearchResponse(**json.loads(msg.value()))
-        if augment and len(res.results)!=0:
+        if augment:
+            if len(res.results) == 0:
+                return "Search did not return any values as context."
             import openai
             openai.api_key = self.config.OPENAI_KEY
             context = res.results[0].chunk
