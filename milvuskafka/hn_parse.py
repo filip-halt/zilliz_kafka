@@ -67,6 +67,7 @@ class HackerNewsParse:
             logger.debug(
                 f"Sleeping for {self.config.HACKER_NEWS_PARSE_SLEEP} seconds before next batch"
             )
+            self.producer.flush()
             time.sleep(self.config.HACKER_NEWS_PARSE_SLEEP)
         # Flush producer on finish
         self.producer.flush()
@@ -80,6 +81,7 @@ class HackerNewsParse:
                 value=json.dumps(post.model_dump(exclude_none=True)),
             )
             logger.debug(f"Post with ID {post.id} was produced")
+            self.producer.flush()
         else:
             logger.debug(f"Post with ID {post.id} already exists, skipped")
 
@@ -99,3 +101,19 @@ class HackerNewsParse:
         else:
             logger.debug("Failed to fetch Hacker News posts.")
             return []
+    
+    def post_specific_ids(self, list_of_ids):
+        for post_id in list_of_ids:
+            # Grab post info for each post id
+            post_url = f"https://hacker-news.firebaseio.com/v0/item/{post_id}.json"
+            response = requests.get(post_url)
+            if response.status_code == 200:
+                # If invalid data, skip it and continue loop
+                try:
+                    post_data = HackerNewsPost(**json.loads(response.text))
+                except Exception:
+                    continue
+                # Respond with post info if valid
+                self.respond(post_data)
+        # Flush producer on finish
+        self.producer.flush()

@@ -74,7 +74,6 @@ class EmbedderSearch:
             if msg is not None:
                 # Broad try except for now to skip faulty data
                 try:
-                    
                     post = SearchRequest(**json.loads(msg.value()))
                     logger.debug(
                         f"Recieved search request with query_id: {post.query_id}"
@@ -83,8 +82,8 @@ class EmbedderSearch:
                     res = self.embed_search(post)
                     # Produce the results
                     self.respond_search(res)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Failed to embed search: {post.query_id}, {e}")
                 # Commit that the message was processed
                 self.consumer.commit(msg)
                     
@@ -109,6 +108,7 @@ class EmbedderSearch:
             topic= self.config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
             value=json.dumps(respond_val.model_dump(exclude_none=True)),
         )
+        self.producer.flush()
         logger.debug(
             f"Search with query_id: {respond_val.query_id} sent to search topic"
         )

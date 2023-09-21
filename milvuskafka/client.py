@@ -48,13 +48,28 @@ class Client():
                 return "Search did not return any values as context."
             import openai
             openai.api_key = self.config.OPENAI_KEY
-            context = res.results[0].chunk
-            context = context.replace("\n", "")
+            prompt_question = f"The question is: \n{res.text}"
+            prompt = ""
+            for x in res.results:
+                context = x.chunk
+                context = context.replace("\n", "")
+                doc_id = "https://news.ycombinator.com/item?id=" + x.doc_id
+    
+                context_id = f"Context ID is:\n{doc_id}\n\n"
+                context_prompt = f"Context is:\n{context}\n\n" 
+                if len(prompt) + len(prompt_question) + len(context_id) + len(context_prompt) >= 4097:
+                    break
+                else:
+                    prompt += context_id
+                    prompt += context_prompt
+    
+            prompt += f"The question is: \n{res.text}"
+            
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a question answering bot that answers questions based on provided context."},
-                    {"role": "user", "content": "The context is:\n " + context + "\n The question is: " + res.text}
+                    {"role": "system", "content": "You are a question answering bot that answers questions based soley on provided context. In your response you must reference each context by its ID in the answer."},
+                    {"role": "user", "content": prompt}
                 ]
             )
             res = response['choices'][0]['message']['content']

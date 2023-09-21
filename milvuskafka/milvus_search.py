@@ -66,11 +66,14 @@ class MilvusSearch:
             msg = self.consumer.poll(timeout=self.config.KAKFA_POLL_TIMEOUT)
             # If a message was caught, process it
             if msg is not None:
-                search_vals = MilvusSearchRequest(**json.loads(msg.value()))
-                # Get search response
-                res = self.search(search_vals)
-                # Produce the results
-                self.respond(res)
+                try:
+                    search_vals = MilvusSearchRequest(**json.loads(msg.value()))
+                    # Get search response
+                    res = self.search(search_vals)
+                    # Produce the results
+                    self.respond(res)
+                except Exception as e:
+                    logger.debug(f"Failed to search: {search_vals.query_id}, {e}")
                 # Commit that the message was processed
                 self.consumer.commit(msg)
         # Flush producer on finish
@@ -110,4 +113,5 @@ class MilvusSearch:
             topic=self.config.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"],
             value=json.dumps(respond_vals.model_dump(exclude_none=True)),
         )
+        self.producer.flush()
         logger.debug("Search on query_id: %s sent result back", respond_vals.query_id)
