@@ -8,7 +8,6 @@ from confluent_kafka import Consumer, Producer
 from milvuskafka.datatypes import MilvusSearchResponse
 
 
-
 class Client():
     def __init__(self, config: Configuration):
         self.config = config
@@ -37,7 +36,6 @@ class Client():
 
         self.producer.produce(
             topic=self.config.KAFKA_TOPICS["SEARCH_EMBEDDING_TOPIC"],
-            key="search",
             value=json.dumps(request),
         )
         self.producer.flush()
