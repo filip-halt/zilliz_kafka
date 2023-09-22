@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zilliz Chatbot Demo</title>
+    <link rel="stylesheet" href="static/styles.css">
+    <style>
+        /* Common styling for text boxes */
+        .story-input {
+            width: 400px;
+            height: 40px;
+            font-size: 16px;
+            margin-bottom: 20px; /* Increase the margin to add more space between text boxes */
+        }
+
+        /* Container for text boxes */
+        .text-box-container {
+            display: flex; /* Use flexbox to align text boxes vertically */
+            flex-direction: column; /* Stack text boxes vertically */
+            align-items: center; /* Horizontally center align text boxes */
+        }
+
+        /* Container for logos */
+        .logo-container {
+            display: flex; /* Use flexbox to position logos side by side */
+            align-items: center; /* Vertically center align the logos */
+            margin: 20px; /* Add margin for spacing */
+        }
+
+        /* Style for individual logos */
+        .logo {
+            margin-right: 20px; /* Add margin between logos */
+            width: 200px; /* Adjust width as needed */
+            height: auto; /* Maintain aspect ratio */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <!-- Logo Container at the top -->
+        <div class="logo-container">
+            <!-- First Logo -->
+            <img src="static/zilliz_logo.png" alt="Zilliz Logo" class="logo">
+
+            <!-- Second Logo -->
+            <img src="static/confluent_logo.png" alt="Confluent Logo" class="logo">
+        </div>
+
+        <h1 style="text-align: center; margin-top: 350px;">Ask HackerNews</h1>
+    </header>
+
+    <main style="text-align: center; margin-top: 20px;">
+        <form action="/chatbot" method="post">
+            <!-- Text Box Container for vertical centering and alignment -->
+            <div class="text-box-container">
+                <input type="text" id="user_message" name="user_message" placeholder="Hi! 👋 It's great to see you!" class="story-input">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
+        <div id="chatbot_response"></div>
+
+        <h1 style="text-align: center; margin-top: 50px;">HackerNews Stories</h1>
+        <!-- Text Box Container for vertical centering and alignment -->
+        <textarea id="messages" rows="15" cols="30" style="width: 800px; height: 600px;"></textarea>
+
+        <script>
+            const socket = new WebSocket("ws://0.0.0.0:8000/ws");
+            const messagesTextArea = document.getElementById("messages");
+
+            socket.onopen = function(event) {
+                console.log("WebSocket connection established.");
+            };
+
+            socket.onmessage = function(event) {
+                const message = event.data;
+
+                // Append the message to the textarea with a newline
+                messagesTextArea.value += message + "\n";
+            };
+
+            socket.onclose = function(event) {
+                console.log("WebSocket connection closed.");
+            };
+        </script>
+
+    </main>
+
+</body>
+</html>
