@@ -108,7 +108,7 @@ class EmbedderSearch:
             topic= self.config.KAFKA_TOPICS["SEARCH_REQUEST_TOPIC"],
             value=json.dumps(respond_val.model_dump(exclude_none=True)),
         )
-        self.producer.flush()
+        # self.producer.flush()
         logger.debug(
             f"Search with query_id: {respond_val.query_id} sent to search topic"
         )

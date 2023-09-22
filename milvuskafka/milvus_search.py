@@ -113,5 +113,5 @@ class MilvusSearch:
             topic=self.config.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"],
             value=json.dumps(respond_vals.model_dump(exclude_none=True)),
         )
-        self.producer.flush()
+        # self.producer.flush()
         logger.debug("Search on query_id: %s sent result back", respond_vals.query_id)
