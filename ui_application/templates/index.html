@@ -54,7 +54,7 @@
         <form action="/chatbot" method="post">
             <!-- Text Box Container for vertical centering and alignment -->
             <div class="text-box-container">
-                <input type="text" id="user_message" name="user_message" placeholder="Hi! 👋 It's great to see you!" class="story-input">
+                <input type="text" id="user_message" name="user_message" placeholder="Hi! 👋 It's great to see you!" class="story-input" style="border-radius: 10px;">
                 <input type="submit" value="Submit">
             </div>
         </form>
@@ -62,7 +62,8 @@
 
         <h1 style="text-align: center; margin-top: 50px;">HackerNews Stories</h1>
         <!-- Text Box Container for vertical centering and alignment -->
-        <textarea id="messages" rows="15" cols="30" style="width: 800px; height: 600px;"></textarea>
+        <textarea id="messages" rows="15" cols="30" style="width: 800px; height: 600px; border-radius: 10px;"></textarea>
+
 
         <script>
             const socket = new WebSocket("ws://0.0.0.0:8000/ws");
