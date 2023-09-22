@@ -1,0 +1,64 @@
+/* styles.css */
+
+/* Font Family and Color */
+body {
+    font-family: 'Inter', sans-serif; /* Use the 'Inter' font family */
+    color: #ffd25b; /* Set the text color to #cc477d */
+    background-color: #060025;
+}
+
+/* Positioning of #main */
+#main {
+    position: fixed;
+    top: 40%;
+    right: 300px;
+
+}
+
+/* Styling for .messages */
+.messages {
+    display: flex;
+    flex-direction: column;
+    overflow: scroll;
+    height: 90%;
+    width: 100%;
+    background-color: white;
+    padding: 15px;
+    margin: 15px;
+    border-radius: 10px;
+
+}
+
+/* Styling for .left-image */
+.left-image {
+    width: 400px;
+    height: auto;
+    position: absolute;
+    top: 100px;
+    left: 100px;
+}
+
+/* Styling for .right-image */
+.right-image {
+    width: 200px;
+    height: auto;
+    position: absolute;
+    top: 100px;
+    right: 100px;
+}
+
+/* CSS for positioning the text box */
+#textbox-container {
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    transform: translateY(-50%);
+}
+
+/* Styling for #textbox */
+#textbox {
+    width: 300px;
+    padding: 10px;
+    font-size: 16px;
+}
+
