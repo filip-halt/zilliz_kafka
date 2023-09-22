@@ -81,7 +81,7 @@ class HackerNewsParse:
                 value=json.dumps(post.model_dump(exclude_none=True)),
             )
             logger.debug(f"Post with ID {post.id} was produced")
-            self.producer.flush()
+            # self.producer.flush()
         else:
             logger.debug(f"Post with ID {post.id} already exists, skipped")
 

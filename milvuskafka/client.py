@@ -38,7 +38,7 @@ class Client():
             topic=self.config.KAFKA_TOPICS["SEARCH_EMBEDDING_TOPIC"],
             value=json.dumps(request),
         )
-        self.producer.flush()
+        # self.producer.flush()
     
     def parse_response(self, augment: bool = True) -> Union[MilvusSearchResponse, str]:
         msg = self.consumer.poll()

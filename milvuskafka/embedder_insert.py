@@ -142,5 +142,5 @@ class EmbedderInsert:
                 topic= self.config.KAFKA_TOPICS["INSERT_REQUEST_TOPIC"],
                 value=json.dumps(x.model_dump(exclude_none=True)),
             )
-            self.producer.flush()
+            # self.producer.flush()
             logger.debug(f"Insert for document: {x.doc_id} sent to insert topic")
