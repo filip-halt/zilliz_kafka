@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from typing_extensions import Annotated
 
-from hn_consumer import get_kafka_messages
+from utils import get_kafka_messages, get_answers, start_backfill, send_question, create_queue, get_queue
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -24,33 +24,26 @@ async def chatbot_page(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    async for message in get_kafka_messages():
+    queue = await get_queue()
+    while True:
+        message = await queue.get()
         await websocket.send_json(message)
 
 @app.post("/chat")
 async def ask_question(user_message: Annotated[str, Form()]):
-    return templates.TemplateResponse("index.html", {"request": user_message})
-    return 
+    print(user_message)
+    await send_question(str(user_message))
+    return True
 
-async def start_backfill():
-    from milvuskafka.runner import Runner
-
-    r = Runner("../config.yaml")
-    # Create the Milvus Collection and Kafka Topics
-    r.setup(overwrite=True)
-    # Start the nodes
-    # These are going to be hardcoded articles that have good RAG responses.
-    r.hn_runner.post_specific_ids([
-        "37583593", # Does compression have any cool use cases?
-        "37601297", # Is it safe to be a scientist?
-        "37602239", # Is there carbon on Europa?
-    ])
-    r.start()
-
+    
 async def main():
     await start_backfill()
     config = uvicorn.Config(app, host="0.0.0.0", port=8000, reload=True, log_level="info")
     server = uvicorn.Server(config)
+
+    await create_queue()
+    asyncio.create_task(get_kafka_messages())
+    asyncio.create_task(get_answers())
     await server.serve()
 
 

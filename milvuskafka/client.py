@@ -26,7 +26,7 @@ class Client():
         self.producer = Producer(self.kafka_producer_config)
         openai.api_key = self.config.OPENAI_KEY
 
-    def request_documents(self, prompt: str, top_k: int) -> dict:
+    def request_documents(self, prompt: str, top_k: int):
         request = {
             "query_id": uuid.uuid4().hex,
             "text": prompt,
@@ -39,7 +39,7 @@ class Client():
         )
         # self.producer.flush()
     
-    def parse_response(self) -> Union[MilvusSearchResponse, str]:
+    def parse_response(self) -> dict:
         msg = self.consumer.poll(timeout= self.config.KAKFA_POLL_TIMEOUT)
         if msg is None:
             return None
