@@ -28,6 +28,7 @@ class Configuration():
             "sasl.username": data_map.get("KAFKA_USERNAME", os.environ.get("KAFKA_USERNAME", "")),
             "sasl.password": data_map.get("KAFKA_PASSWORD", os.environ.get("KAFKA_PASSWORD", "")),
             "linger.ms": data_map.get("KAFKA_LINGER_MS", os.environ.get("KAFKA_LINGER_MS", "10")),
+            "enable.auto.commit": True
         }
 
         # Configs for Milvus

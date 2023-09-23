@@ -19,12 +19,7 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
-logger = logging.getLogger("KafkaInsertEmbedderLog")
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = logging.getLogger("logger")
 
 
 class EmbedderInsert:
@@ -81,8 +76,8 @@ class EmbedderInsert:
                     # Produce the result to the insert channel
                     self.respond_insert(res)
                 except Exception as e:
-                    logger.debug(f"Failed to embed post: {post.id}, {e}")
-                self.consumer.commit(msg)
+                    logger.error(f"Failed to embed post: {post.id}, {e}")
+                # self.consumer.commit(msg)
                     
         # Flush producer on finish
         self.producer.flush()

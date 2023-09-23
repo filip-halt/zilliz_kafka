@@ -10,12 +10,7 @@ from milvuskafka.config import Configuration
 
 from milvuskafka.datatypes import MilvusDocument
 
-logger = logging.getLogger("KafkaInsertLogger")
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = logging.getLogger("logger")
 
 
 class MilvusInsert:
@@ -62,7 +57,7 @@ class MilvusInsert:
                 except Exception as e:
                     logger.debug(f"Failed to insert: {insert_vals.chunk_id}, {e}")
                 # Commit msg
-                self.consumer.commit(msg)
+                # self.consumer.commit(msg)
         logger.debug("Exiting MilvusInsert run() loop")
         return
 

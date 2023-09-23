@@ -31,7 +31,7 @@ langsmith==0.0.40
 lxml==4.9.3
 MarkupSafe==2.1.3
 marshmallow==3.20.1
-milvuskafka @ file:///Users/jbyrne/development/zilliz_kafka
+# milvuskafka @ file:///Users/jbyrne/development/zilliz_kafka
 mpmath==1.3.0
 multidict==6.0.4
 mypy-extensions==1.0.0

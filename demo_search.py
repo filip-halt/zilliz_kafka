@@ -4,9 +4,8 @@ from milvuskafka.runner import Runner
 
 
 client = Runner.get_client("config.yaml")
-
+q = input("What is your question?")
+client.request_documents(q, 5)
 while True:
-    q = input("What is your question?")
-    client.request_documents(q, 5)
     # Async read response
     pprint(client.parse_response())

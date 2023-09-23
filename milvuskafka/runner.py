@@ -6,7 +6,15 @@ from milvuskafka.embedder_search import EmbedderSearch
 from milvuskafka.setup_services import setup_kafka, setup_milvus
 from milvuskafka.config import Configuration
 from milvuskafka.client import Client
+import logging
+import sys
 
+logger = logging.getLogger("logger")
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter("[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s")
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 class Runner:
     def __init__(self, config_yaml_path: str = None):

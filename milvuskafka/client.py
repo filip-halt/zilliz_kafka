@@ -4,6 +4,7 @@ from typing import Union
 import uuid
 from milvuskafka.config import Configuration
 from confluent_kafka import Consumer, Producer
+import openai
 
 from milvuskafka.datatypes import MilvusSearchResponse
 
@@ -11,7 +12,6 @@ from milvuskafka.datatypes import MilvusSearchResponse
 class Client():
     def __init__(self, config: Configuration):
         self.config = config
-
         self.kafka_producer_config = config.KAFKA_BASE_CONFIGS
         self.kafka_consumer_config = deepcopy(config.KAFKA_BASE_CONFIGS)
         self.kafka_consumer_config.update(
@@ -21,11 +21,10 @@ class Client():
                 "auto.offset.reset": "earliest",
             }
         )
-
         self.consumer = Consumer(self.kafka_consumer_config)
         self.consumer.subscribe([config.KAFKA_TOPICS["SEARCH_RESPONSE_TOPIC"]])
-
         self.producer = Producer(self.kafka_producer_config)
+        openai.api_key = self.config.OPENAI_KEY
 
     def request_documents(self, prompt: str, top_k: int) -> dict:
         request = {
@@ -40,21 +39,24 @@ class Client():
         )
         # self.producer.flush()
     
-    def parse_response(self, augment: bool = True) -> Union[MilvusSearchResponse, str]:
-        msg = self.consumer.poll()
-        res = MilvusSearchResponse(**json.loads(msg.value()))
-        if augment:
+    def parse_response(self) -> Union[MilvusSearchResponse, str]:
+        msg = self.consumer.poll(timeout= self.config.KAKFA_POLL_TIMEOUT)
+        if msg is None:
+            return None
+        try:
+            res = MilvusSearchResponse(**json.loads(msg.value()))
             if len(res.results) == 0:
-                return "Search did not return any values as context."
-            import openai
-            openai.api_key = self.config.OPENAI_KEY
+                return {
+                    "question": res.text,
+                    "response": "Search did not return any values as context.",
+                }
             prompt_question = f"The question is: \n{res.text}"
             prompt = ""
             for x in res.results:
                 context = x.chunk
                 context = context.replace("\n", "")
                 doc_id = "https://news.ycombinator.com/item?id=" + x.doc_id
-    
+
                 context_id = f"Context ID is:\n{doc_id}\n\n"
                 context_prompt = f"Context is:\n{context}\n\n" 
                 if len(prompt) + len(prompt_question) + len(context_id) + len(context_prompt) >= 4097:
@@ -62,7 +64,7 @@ class Client():
                 else:
                     prompt += context_id
                     prompt += context_prompt
-    
+
             prompt += f"The question is: \n{res.text}"
             
             response = openai.ChatCompletion.create(
@@ -72,8 +74,12 @@ class Client():
                     {"role": "user", "content": prompt}
                 ]
             )
-            res = response['choices'][0]['message']['content']
-    
-        self.consumer.commit(msg)
+            # self.consumer.commit(msg)
+            return {
+                "question": res.text,
+                "response": response['choices'][0]['message']['content'],
+            }
+        except Exception:
+            return None
+        
 
-        return res

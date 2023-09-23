@@ -49,42 +49,53 @@
 
         <h1 style="text-align: center; margin-top: 350px;">Ask HackerNews</h1>
     </header>
-
     <main style="text-align: center; margin-top: 20px;">
-        <form action="/chatbot" method="post">
+        <div id="question">
+            <form id="uploadform" action="/chat" method="post">
+                <!-- Text Box Container for vertical centering and alignment -->
+                <div class="text-box-container">
+                    <input type="text" id="user_message" name="user_message" placeholder="Hi! 👋 It's great to see you!" class="story-input" style="border-radius: 10px;">
+                    <input type="submit" value="Submit">
+                </div>
+            </form>
+            
+            <textarea id="question_response" rows="15" cols="30" style="width: 800px; height: 300px; border-radius: 10px;"></textarea>
+        
+            <script>
+                const box = document.getElementById("question_response");
+                uploadform.onsubmit = async (e) => {
+                    e.preventDefault();
+
+                };
+            </script>
+        </div>
+        <div id= "posts"> 
+            <h1 style="text-align: center; margin-top: 50px;">HackerNews Stories</h1>
             <!-- Text Box Container for vertical centering and alignment -->
-            <div class="text-box-container">
-                <input type="text" id="user_message" name="user_message" placeholder="Hi! 👋 It's great to see you!" class="story-input" style="border-radius: 10px;">
-                <input type="submit" value="Submit">
-            </div>
-        </form>
-        <div id="chatbot_response"></div>
+            <textarea id="messages" rows="15" cols="30" style="width: 800px; height: 600px; border-radius: 10px;"></textarea>
+            <script>
+                const socket = new WebSocket("ws://0.0.0.0:8000/ws");
+                const messagesTextArea = document.getElementById("messages");
 
-        <h1 style="text-align: center; margin-top: 50px;">HackerNews Stories</h1>
-        <!-- Text Box Container for vertical centering and alignment -->
-        <textarea id="messages" rows="15" cols="30" style="width: 800px; height: 600px; border-radius: 10px;"></textarea>
+                socket.onopen = function(event) {
+                    console.log("WebSocket connection established.");
+                };
 
+                socket.onmessage = function(event) {
+                    var message = event.data;
+                    message = message.replaceAll('\\n', '\n');
+                    message = message.replaceAll('\"', '');
+                    message = message.replaceAll('\\u', '');
 
-        <script>
-            const socket = new WebSocket("ws://0.0.0.0:8000/ws");
-            const messagesTextArea = document.getElementById("messages");
+                    // Append the message to the textarea with a newline
+                    messagesTextArea.value = message + "\n\n" + messagesTextArea.value;
+                };
 
-            socket.onopen = function(event) {
-                console.log("WebSocket connection established.");
-            };
-
-            socket.onmessage = function(event) {
-                const message = event.data;
-
-                // Append the message to the textarea with a newline
-                messagesTextArea.value += message + "\n";
-            };
-
-            socket.onclose = function(event) {
-                console.log("WebSocket connection closed.");
-            };
-        </script>
-
+                socket.onclose = function(event) {
+                    console.log("WebSocket connection closed.");
+                };
+            </script>  
+        </div>
     </main>
 
 </body>

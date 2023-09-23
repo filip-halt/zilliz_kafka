@@ -14,12 +14,7 @@ import milvuskafka.config as config
 from milvuskafka.datatypes import HackerNewsPost
 from pymilvus import MilvusClient
 
-logger = logging.getLogger("HNParserLogger")
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = logging.getLogger("logger")
 
 
 class HackerNewsParse:
@@ -75,6 +70,7 @@ class HackerNewsParse:
 
     def respond(self, post: HackerNewsPost):
         # Only send the post if it doesnt exist already in milvus
+        time.sleep(.5)
         if not self.post_exists(post):
             self.producer.produce(
                 topic=self.config.KAFKA_TOPICS["INSERT_EMBEDDING_TOPIC"],

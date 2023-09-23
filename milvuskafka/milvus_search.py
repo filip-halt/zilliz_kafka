@@ -14,12 +14,7 @@ from milvuskafka.datatypes import (
     MilvusSearchResponse,
 )
 
-logger = logging.getLogger("KafkaSearchLogger")
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = logging.getLogger("logger")
 
 
 class MilvusSearch:
@@ -75,7 +70,7 @@ class MilvusSearch:
                 except Exception as e:
                     logger.debug(f"Failed to search: {search_vals.query_id}, {e}")
                 # Commit that the message was processed
-                self.consumer.commit(msg)
+            #    self.consumer.commit(msg)
         # Flush producer on finish
         self.producer.flush()
         logger.debug("Exiting MilvusSearch run() loop")

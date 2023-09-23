@@ -16,7 +16,8 @@ conf = {
     'sasl.username': config['KAFKA_USERNAME'],
     'sasl.password': config['KAFKA_PASSWORD'],
     'group.id': 'foo',
-    'auto.offset.reset': 'smallest'
+    'auto.offset.reset': 'smallest',
+    'enable.auto.commit': True
 }
 
 # Create a Kafka consumer instance
@@ -27,19 +28,17 @@ consumer.subscribe(topic)
 
 
 async def get_kafka_messages():
-    global latest_message
     while True:
         msg = consumer.poll(30.0)
-
         if msg is None:
             continue
-
         if msg.error():
             handle_kafka_error(msg)
         else:
             hn_result = process_kafka_message(msg)
-            await asyncio.sleep(0.1)  # Add a small delay to avoid excessive CPU usage
-            return hn_result
+            yield hn_result
+            # Add a small delay to avoid excessive CPU usage
+            await asyncio.sleep(0.1)
 
 
 def handle_kafka_error(msg):
@@ -66,10 +65,8 @@ def process_kafka_message(msg):
 
         # Create the hn_url
         hn_url = f"https://news.ycombinator.com/item?id={data.get('id', '')}"
-
-        result = f'Title = {data["title"]} and is by {data["by"]} and can be found at {hn_url}'
-
-        print(result)
+        
+        result = f"""Title: {data["title"]}\nAuthor: {data["by"]} \nSource: {hn_url}"""
 
         return result
     except Exception as e:
