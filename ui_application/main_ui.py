@@ -29,7 +29,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.post("/chat")
 async def ask_question(user_message: Annotated[str, Form()]):
-    return templates.TemplateResponse("index.html", {"request": user_message}) 
+    return templates.TemplateResponse("index.html", {"request": user_message})
+    return 
 
 async def start_backfill():
     from milvuskafka.runner import Runner
